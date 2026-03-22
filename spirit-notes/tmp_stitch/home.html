@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Private Reserve | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container": "#1f1f22",
+              "primary-fixed": "#ffdfa0",
+              "on-secondary": "#303030",
+              "on-primary-container": "#5a4100",
+              "surface": "#131316",
+              "tertiary-fixed-dim": "#ffb95c",
+              "tertiary": "#ffc479",
+              "secondary-container": "#474747",
+              "outline": "#99907c",
+              "on-secondary-fixed": "#1b1c1c",
+              "on-primary-fixed": "#261a00",
+              "primary-fixed-dim": "#fbbc00",
+              "on-tertiary-fixed": "#2a1700",
+              "on-primary-fixed-variant": "#5c4300",
+              "surface-bright": "#39393c",
+              "secondary": "#c8c6c6",
+              "on-tertiary-fixed-variant": "#653e00",
+              "inverse-on-surface": "#303033",
+              "surface-tint": "#fbbc00",
+              "secondary-fixed": "#e4e2e1",
+              "inverse-primary": "#795900",
+              "primary": "#ffc63e",
+              "surface-container-low": "#1b1b1e",
+              "tertiary-fixed": "#ffddb7",
+              "surface-dim": "#131316",
+              "on-primary": "#402d00",
+              "error-container": "#93000a",
+              "background": "#131316",
+              "secondary-fixed-dim": "#c8c6c6",
+              "surface-container-high": "#2a2a2d",
+              "on-tertiary-container": "#623d00",
+              "inverse-surface": "#e4e1e6",
+              "surface-variant": "#353438",
+              "outline-variant": "#4d4635",
+              "on-secondary-container": "#b6b5b4",
+              "surface-container-highest": "#353438",
+              "on-error": "#690005",
+              "surface-container-lowest": "#0e0e11",
+              "primary-container": "#e3aa00",
+              "on-secondary-fixed-variant": "#474747",
+              "on-error-container": "#ffdad6",
+              "tertiary-container": "#f5a119",
+              "on-background": "#e4e1e6",
+              "on-surface-variant": "#d0c5af",
+              "error": "#ffb4ab",
+              "on-tertiary": "#462a00",
+              "on-surface": "#e4e1e6"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #131316; }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .glass-card {
+            background: rgba(53, 52, 56, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .amber-gradient {
+            background: linear-gradient(135deg, #FFC63E 0%, #E3AA00 100%);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface bg-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-xl flex justify-between items-center px-6 py-4 w-full h-16">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="Professional male portrait in low light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbXrXm_91WVELmAmCI9jNc-hPV8dqBIByN80HAFCLZZK0p6sOeY-PyJDeLOOaJfSfdoDTQoJOp7ThmiI29BhrdxI0_xvbT68BhY72kcbAfs-vQo5XLlhR1bCCJMBRnVW1zeg-c2jTA2LLyNZqtmJUjCSOkgosu-nTUAU2hWiE-KAGNijz-9JyzsFTMcZiBiRItcNNOJqWzncK-hFDwo7DTqNkGW1Bbb3Z_AeznWY7RgmPj5_mkEd85wSSB6WvlZFoZ1a9cYqPAKg"/>
+</div>
+</div>
+<h1 class="font-serif text-[#FFC63E] italic font-bold text-2xl tracking-tight">The Private Reserve</h1>
+<div class="flex items-center">
+<button class="text-[#FFC63E] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-10">
+<!-- Welcome Section -->
+<section class="space-y-2">
+<h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">Welcome, Minsu Kim</h2>
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="text-xs font-label uppercase tracking-widest text-primary font-bold">Peaty Enthusiast Persona</span>
+</div>
+</section>
+<!-- Recent Tastings -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h3 class="font-headline text-xl text-on-surface">Recent Tastings</h3>
+<button class="text-xs font-label uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">View All</button>
+</div>
+<div class="flex overflow-x-auto gap-4 hide-scrollbar -mx-6 px-6 pb-2">
+<!-- Tasting Card 1 -->
+<div class="glass-card flex-shrink-0 w-64 rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="h-40 relative">
+<img alt="Whiskey bottle" class="w-full h-full object-cover" data-alt="Premium scotch whiskey bottle on dark wood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjdjXAHakPud-JXv_uGwsA7-pDy6bKKS0pf5iImEipk53dN_H6LlY-xjbnxtqzJU5T0wis1BTyhnUIHIMFa7CC00sn0t8nDQ5ZJKfCoPwo88VT9NdHb7Xs9MMVWhV7y3mrKaelPuuPg4V-AYnRAczb4_dWLZCWbiaXSO3HMsQUc7HUNIC_xSbv1172WrjfrXwdIfGURsDOOf46R25pfqe-BLp8vsg6asrcAMA8wt-xW1xjDaeLvJNjsq-J0s_nMmXszpiW5twenQ"/>
+<div class="absolute top-3 right-3 flex items-center gap-1 bg-surface/80 backdrop-blur px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-on-surface">4.8</span>
+</div>
+</div>
+<div class="p-4 space-y-1">
+<h4 class="font-bold text-on-surface">Lagavulin 16 Year</h4>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic">"Intense peat smoke with a rich, dried fruit sweetness..."</p>
+</div>
+</div>
+<!-- Tasting Card 2 -->
+<div class="glass-card flex-shrink-0 w-64 rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="h-40 relative">
+<img alt="Bourbon" class="w-full h-full object-cover" data-alt="Bourbon glass with large ice sphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhVOkruElTLMrj_Mnd_V-MoAwEfOupo8U_Z53JXem2NJMiAK7Uo0VwRd-5UOFYveX7blQldaCEvoS3A9Yji0ZpzL1UleURwmULSKYZ5kJZAs-QW9yNDJd88CrTwYaO5RiRps0z5LT69MT6sgrbt_MH9L_p0fNz7ZqBsUo0I9H1AAgeOQE6Y6f86joWARrEi6lpINsazNAkfGe1VZYLoh50WD7li9KdiVdruCttmZsF3tbwHdRyWLHYPjNwMbQ2gdUWqR3hk3Hqdw"/>
+<div class="absolute top-3 right-3 flex items-center gap-1 bg-surface/80 backdrop-blur px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-on-surface">4.5</span>
+</div>
+</div>
+<div class="p-4 space-y-1">
+<h4 class="font-bold text-on-surface">Woodford Reserve</h4>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic">"Deep amber hue, notes of cocoa and toasted oak..."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 7-Day Frequency Chart -->
+<section class="glass-card p-6 rounded-xl border border-outline-variant/10 space-y-6">
+<div class="flex justify-between items-center">
+<h3 class="font-headline text-lg text-on-surface">7-Day Frequency</h3>
+<span class="text-xs font-label text-on-surface-variant">Avg: 1.2 / day</span>
+</div>
+<div class="flex items-end justify-between h-32 px-2">
+<!-- Chart Bars -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 bg-surface-container-highest rounded-t-sm h-[20%]"></div>
+<span class="text-[10px] text-on-surface-variant">M</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 amber-gradient rounded-t-sm h-[60%] shadow-[0_0_12px_rgba(255,198,62,0.3)]"></div>
+<span class="text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 bg-surface-container-highest rounded-t-sm h-[30%]"></div>
+<span class="text-[10px] text-on-surface-variant">W</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 amber-gradient rounded-t-sm h-[85%] shadow-[0_0_12px_rgba(255,198,62,0.3)]"></div>
+<span class="text-[10px] text-on-surface-variant">T</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 amber-gradient rounded-t-sm h-[45%] shadow-[0_0_12px_rgba(255,198,62,0.3)]"></div>
+<span class="text-[10px] text-on-surface-variant">F</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 bg-surface-container-highest rounded-t-sm h-[15%]"></div>
+<span class="text-[10px] text-on-surface-variant">S</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-6 bg-surface-container-highest rounded-t-sm h-[10%]"></div>
+<span class="text-[10px] text-on-surface-variant">S</span>
+</div>
+</div>
+</section>
+<!-- Recommendations Grid -->
+<section class="space-y-4">
+<h3 class="font-headline text-xl text-on-surface">DNA-based Recommendations</h3>
+<div class="grid grid-cols-2 gap-4">
+<!-- Recommendation 1 -->
+<div class="glass-card p-2 rounded-xl border border-outline-variant/10 space-y-3 relative overflow-hidden group">
+<div class="absolute top-3 left-3 z-10">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">92% MATCH</span>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img alt="Rec 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Close up of a premium whiskey label" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJSuGxumoXuWTHb3yOBQF48FulC8HnQ_0do6xGib0sYOZsN4bq1oHStUP0K9P18xJo8CQxrbaFMnYNKhPpTDsVcDitkmSz_gT_nUDigFWBuD-1JFpZUZdTLtjbdXmI8qc8sbFwid_u_1I2CQhq59_--63VtvXwUYGo7XxXm3coDzl90-UOODOQcJhhHoGVHv8SrT5Ssq8-2zSGLgE6g0wyJ4r2JIkVNaSBJOLgri1Q94QP541cA6LM2BBrLUxXueo-9PunNSb1RA"/>
+</div>
+<div class="px-1 pb-1">
+<h4 class="text-sm font-bold text-on-surface truncate">Ardbeg Uigeadail</h4>
+<p class="text-[11px] text-on-surface-variant">Islay Single Malt</p>
+</div>
+</div>
+<!-- Recommendation 2 -->
+<div class="glass-card p-2 rounded-xl border border-outline-variant/10 space-y-3 relative overflow-hidden group">
+<div class="absolute top-3 left-3 z-10">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">88% MATCH</span>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img alt="Rec 2" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Elegant decanter with golden liquid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCK8CMzcvlFE56S3oKHFwnlmhVnePHWNlY3gOxanwZ0pZ0enHMjDwhld_gQvZu5qvbf5IEDNwaYH82SBGPyiZ01V3zib1_dD8FB-cTWpsMjAhpyRmvvQTepDVNBQ343AzY-6dKDMaaNZUV6_gtB6XhPc8bDDpA6sbLjeTfgO_xXeggo3Qhh-2YfRHJFBIEW6LcJLoTm7w0obnixgxeArBpjJSWC8HhgNJqlNaEVeEjIClvGDli3h83w1qWgz4RB257jUjoH5i2Vw"/>
+</div>
+<div class="px-1 pb-1">
+<h4 class="text-sm font-bold text-on-surface truncate">Laphroaig Quarter Cask</h4>
+<p class="text-[11px] text-on-surface-variant">Heavy Peat Profile</p>
+</div>
+</div>
+<!-- Recommendation 3 -->
+<div class="glass-card p-2 rounded-xl border border-outline-variant/10 space-y-3 relative overflow-hidden group">
+<div class="absolute top-3 left-3 z-10">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">85% MATCH</span>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img alt="Rec 3" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Minimalist whiskey bottle shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmEgtKFEkNWuQNXJAZDLNBJ0YgKKfayBPJj5TeVB_CKJV9Z-I8ucPUHFK9aVO_dmnhsvqdcTBjtAptsnB075Uilpa11F-SJhvCNucwmOvXj2CxVlNUV1GU2OR-bJZ-CgdrjqQ8wgU6IpWyNFMXhvSe0Jha1W9kHAW2qILvpMQZQAZTB83OXMMX839xW2iRpOM4U-XZCt7Dpoga64wFxBt05NQYhZCrVLnhw2dLLtSWKKNb8mo2V9pOpd1TiAzdfOjqYvrhkn81tQ"/>
+</div>
+<div class="px-1 pb-1">
+<h4 class="text-sm font-bold text-on-surface truncate">Talisker 10 Year</h4>
+<p class="text-[11px] text-on-surface-variant">Sea Salt &amp; Smoke</p>
+</div>
+</div>
+<!-- Recommendation 4 -->
+<div class="glass-card p-2 rounded-xl border border-outline-variant/10 space-y-3 relative overflow-hidden group">
+<div class="absolute top-3 left-3 z-10">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">82% MATCH</span>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-surface-container">
+<img alt="Rec 4" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Whiskey barrel in a cellar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRoe9C7_r9JfUOTOWPNdmLe19gRXu12V9vmS3aKvK7AOa1_jVQ2Ar9OLUs7riIPOJGHMb0K_E-19EHOH8D2dtFaT-_5pKew_3ZkvjULefjLSm-oGuEy9DNGlY90qLPcRWAa8klbxSonVhoFB173QqbW64PZ7KOLjmG63MFGzHaXCkOkTMzZjIcm_cs4ZH21ksu6QZXadUlyDB30xjJWewHjxUICLbX7vF_y_zbe3cobHuWHP4cYpgjTKzW5MDi2u7FrTdwZ_l-kg"/>
+</div>
+<div class="px-1 pb-1">
+<h4 class="text-sm font-bold text-on-surface truncate">Caol Ila 12</h4>
+<p class="text-[11px] text-on-surface-variant">Balanced Peat</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl bg-[#1F1F22]/60 backdrop-blur-2xl shadow-[0_-20px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-3">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-[#FFC63E] drop-shadow-[0_0_8px_rgba(255,198,62,0.5)]" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Home</span>
+</a>
+<!-- Collection -->
+<a class="flex flex-col items-center justify-center text-[#D0C5AF]/50 hover:text-[#FFC63E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="liquor">liquor</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Collection</span>
+</a>
+<!-- FAB -->
+<div class="relative -top-8">
+<button class="w-16 h-16 rounded-full amber-gradient flex items-center justify-center shadow-[0_10px_30px_rgba(255,198,62,0.4)] active:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-[#402D00] text-3xl font-bold" data-icon="add">add</span>
+</button>
+</div>
+<!-- DNA -->
+<a class="flex flex-col items-center justify-center text-[#D0C5AF]/50 hover:text-[#FFC63E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dna">genetics</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">DNA</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#D0C5AF]/50 hover:text-[#FFC63E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-sans text-[10px] uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+</body></html>

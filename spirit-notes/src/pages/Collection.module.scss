@@ -1,0 +1,219 @@
+@use "@/styles/variables" as *;
+
+.collectionPage {
+  padding-top: 80px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 128px;
+  max-width: 672px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeIn 0.5s ease-out;
+
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.loadingWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 16px;
+  padding-top: 80px;
+
+  .loadingIcon {
+    font-size: 40px;
+    color: var(--primary);
+    animation: bounce 1s infinite;
+  }
+
+  .loadingText {
+    color: var(--on-surface-variant);
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.headerSection {
+  .title {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--on-surface);
+    margin-bottom: 32px;
+  }
+
+  .tabs {
+    display: flex;
+    padding: 4px;
+    background: var(--surface-container-lowest);
+    border: 1px solid rgba($outline-variant, 0.1);
+    border-radius: 16px;
+    margin-bottom: 8px;
+
+    .tabButton {
+      flex: 1;
+      padding: 12px 0;
+      font-size: 14px;
+      font-family: var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: transparent;
+      border: none;
+      color: var(--on-surface-variant);
+      cursor: pointer;
+
+      .tabIcon {
+        font-size: 18px;
+      }
+
+      &.active {
+        background: var(--primary);
+        color: var(--on-primary);
+        box-shadow: 0 10px 15px -3px rgba($primary, 0.2);
+      }
+
+      &:not(.active):hover {
+        color: var(--on-surface);
+      }
+    }
+  }
+}
+
+.searchSection {
+  display: flex;
+  gap: 16px;
+
+  .searchBar {
+    position: relative;
+    flex: 1;
+
+    .searchIcon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+    }
+
+    .searchInput {
+      width: 100%;
+      background: rgba($surface-container-high, 0.4);
+      border: none;
+      border-bottom: 2px solid rgba($outline-variant, 0.3);
+      padding: 16px 16px 16px 48px;
+      border-radius: 12px 12px 0 0;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--on-surface);
+      font-family: var(--font-sans);
+      transition: all 0.3s ease;
+
+      &::placeholder {
+        color: rgba($on-surface-variant, 0.4);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba($surface-container-high, 0.6);
+      }
+    }
+  }
+
+  .filterButton {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(var(--surface-container-high-rgb), 0.4);
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: var(--primary);
+    border: 1px solid rgba($outline-variant, 0.1);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.contentGrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  text-align: center;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(var(--surface-container-high-rgb), 0.4);
+  border-radius: 16px;
+  border: 1px solid rgba(var(--outline-variant-rgb), 0.1);
+
+  .iconWrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--surface-container-high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .icon {
+      font-size: 32px;
+      color: rgba($on-surface-variant, 0.3);
+    }
+  }
+
+  .textGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .emptyTitle {
+      color: var(--on-surface);
+      font-family: var(--font-heading);
+      font-weight: 700;
+    }
+
+    .emptyDescription {
+      font-size: 12px;
+      color: var(--on-surface-variant);
+      font-family: var(--font-sans);
+    }
+  }
+}

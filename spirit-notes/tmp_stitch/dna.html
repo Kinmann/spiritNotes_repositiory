@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flavor DNA Analysis - The Private Reserve</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed-variant": "#544519",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "secondary-container": "#544519",
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "on-tertiary": "#082b72",
+                        "tertiary": "#bfcdff",
+                        "tertiary-container": "#97b0ff",
+                        "surface-container": "#1f1f22",
+                        "surface": "#131316",
+                        "primary-fixed-dim": "#e9c349",
+                        "surface-container-high": "#2a2a2d",
+                        "inverse-primary": "#735c00",
+                        "on-secondary": "#3c2f05",
+                        "on-primary": "#3c2f00",
+                        "on-tertiary-container": "#254188",
+                        "outline-variant": "#4d4635",
+                        "tertiary-fixed": "#dbe1ff",
+                        "primary-fixed": "#ffe088",
+                        "surface-dim": "#131316",
+                        "on-secondary-container": "#c8b37d",
+                        "background": "#131316",
+                        "surface-container-low": "#1b1b1e",
+                        "on-tertiary-fixed": "#00174b",
+                        "surface-container-lowest": "#0e0e11",
+                        "on-primary-container": "#554300",
+                        "on-surface": "#e4e1e6",
+                        "on-surface-variant": "#d0c5af",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed": "#241a00",
+                        "on-error": "#690005",
+                        "primary-container": "#d4af37",
+                        "on-primary-fixed-variant": "#574500",
+                        "surface-container-highest": "#353438",
+                        "primary": "#f2ca50",
+                        "secondary-fixed": "#f7e1a6",
+                        "on-secondary-fixed": "#241a00",
+                        "inverse-on-surface": "#303033",
+                        "surface-variant": "#353438",
+                        "surface-tint": "#e9c349",
+                        "on-background": "#e4e1e6",
+                        "outline": "#99907c",
+                        "surface-bright": "#39393c",
+                        "secondary": "#dac58d",
+                        "secondary-fixed-dim": "#dac58d",
+                        "inverse-surface": "#e4e1e6"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(31, 31, 34, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .hexagon-bg {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        .radar-line {
+            background: linear-gradient(90deg, transparent, rgba(242, 202, 80, 0.3), transparent);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-zinc-900/60 backdrop-blur-xl shadow-xl shadow-black/20">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-amber-400" data-icon="menu">menu</span>
+<h1 class="text-xl font-serif font-bold text-amber-400">The Private Reserve</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-amber-400/20">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Close up of a sophisticated male user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-JC0c7lOpTgHonCg9Eby6tHq9Op1Oz4rL6AXphp8SsvX5qLvfPjT4Mi5i9nxn0HmxU7c3OKjs48TZZLM1yd8xDxb-qfZOHAePyJBtquFNADjhvtRVQRTZXIRQoZQXZ0uWSAt8NKoFnm6TtV_z2W_smJrHWZmhAt0WxLfS3HPVaH8HCssEXMqngD3dvUGSlgMRNJOSVthB7XioZBBQjYCBUB_F2xHVSLlKX7rSIIr7eBgAjIbrAieoDhA8G5NDix9Is58SejgZPQ"/>
+</div>
+</header>
+<main class="pt-20 pb-32 px-6 overflow-x-hidden">
+<!-- Top Section: Badge & Title -->
+<section class="flex flex-col items-center text-center mb-10">
+<div class="mb-4 inline-flex items-center px-6 py-2 rounded-full bg-gradient-to-r from-primary/20 to-primary-container/20 border border-primary/30 shadow-[0_0_20px_rgba(242,202,80,0.15)]">
+<span class="material-symbols-outlined text-primary mr-2 text-sm" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="text-primary font-bold tracking-widest text-[10px] uppercase">Oak &amp; Smoke Master</span>
+</div>
+<h2 class="text-3xl md:text-4xl font-headline text-on-surface mb-2">Taste Profile Analysis</h2>
+<p class="text-on-surface-variant text-sm max-w-xs mx-auto">A deep biological mapping of your olfactory and palate preferences.</p>
+</section>
+<!-- Middle Section: Hexagon Radar Chart -->
+<section class="relative w-full aspect-square max-w-md mx-auto flex items-center justify-center mb-12">
+<!-- Background Decorative Hexagons -->
+<div class="absolute inset-0 flex items-center justify-center opacity-20">
+<div class="w-full h-full hexagon-bg border border-outline-variant scale-100"></div>
+<div class="absolute w-3/4 h-3/4 hexagon-bg border border-outline-variant"></div>
+<div class="absolute w-1/2 h-1/2 hexagon-bg border border-outline-variant"></div>
+</div>
+<!-- The Radar Glow Path -->
+<svg class="absolute w-full h-full drop-shadow-[0_0_15px_rgba(242,202,80,0.4)]" viewbox="0 0 100 100">
+<polygon fill="none" points="50,10 85,30 85,70 50,90 15,70 15,30" stroke="rgba(212,175,55,0.1)" stroke-width="0.5"></polygon>
+<!-- Active DNA Shape -->
+<polygon fill="rgba(242, 202, 80, 0.15)" points="50,15 80,35 82,65 50,85 20,75 18,40" stroke="url(#goldGradient)" stroke-linejoin="round" stroke-width="1.5"></polygon>
+<defs>
+<lineargradient id="goldGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#f2ca50;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#d4af37;stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+<!-- Data Points -->
+<circle cx="50" cy="15" fill="#f2ca50" r="1.5"></circle>
+<circle cx="80" cy="35" fill="#f2ca50" r="1.5"></circle>
+<circle cx="82" cy="65" fill="#f2ca50" r="1.5"></circle>
+<circle cx="50" cy="85" fill="#f2ca50" r="1.5"></circle>
+<circle cx="20" cy="75" fill="#f2ca50" r="1.5"></circle>
+<circle cx="18" cy="40" fill="#f2ca50" r="1.5"></circle>
+</svg>
+<!-- Labels -->
+<div class="absolute top-2 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Smoky</div>
+<div class="absolute top-1/4 right-0 transform translate-x-4 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Sweet</div>
+<div class="absolute bottom-1/4 right-0 transform translate-x-4 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Acidic</div>
+<div class="absolute bottom-2 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Bitter</div>
+<div class="absolute bottom-1/4 left-0 transform -translate-x-4 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Finish</div>
+<div class="absolute top-1/4 left-0 transform -translate-x-4 text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Body</div>
+<!-- Central DNA Icon -->
+<div class="relative z-10 w-20 h-20 rounded-full glass-panel border border-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="dna" style="font-variation-settings: 'FILL' 1;">genetics</span>
+</div>
+</section>
+<!-- Progress Section -->
+<section class="space-y-8 mb-16">
+<h3 class="text-xs font-bold tracking-widest text-primary uppercase ml-1">DNA Markers</h3>
+<div class="space-y-6">
+<!-- Body Depth -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Body Depth</span>
+<span class="text-xs text-on-surface-variant">Overwhelmingly rich and deep</span>
+</div>
+<span class="text-lg font-headline text-primary">94%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<!-- Smoky Intensity -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Smoky Intensity</span>
+<span class="text-xs text-on-surface-variant">Strong peat smoke</span>
+</div>
+<span class="text-lg font-headline text-primary">88%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<!-- Sweetness -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Sweetness</span>
+<span class="text-xs text-on-surface-variant">Caramelized fig and honey</span>
+</div>
+<span class="text-lg font-headline text-primary">42%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<!-- Acidity -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Acidity</span>
+<span class="text-xs text-on-surface-variant">Sharp citrus zest notes</span>
+</div>
+<span class="text-lg font-headline text-primary">15%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 15%"></div>
+</div>
+</div>
+<!-- Bitterness -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Bitterness</span>
+<span class="text-xs text-on-surface-variant">Dark cocoa and charred oak</span>
+</div>
+<span class="text-lg font-headline text-primary">61%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 61%"></div>
+</div>
+</div>
+<!-- Finish -->
+<div class="group">
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-sm font-bold text-on-surface block">Finish</span>
+<span class="text-xs text-on-surface-variant">Lingering, warm, and medicinal</span>
+</div>
+<span class="text-lg font-headline text-primary">78%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style="width: 78%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recommendation Section -->
+<section class="mb-8">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-2xl font-headline text-on-surface">92% Match DNA</h3>
+<span class="text-primary text-xs font-bold uppercase tracking-widest">See All</span>
+</div>
+<div class="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-6 px-6">
+<!-- Recommended Item 1 -->
+<div class="snap-start flex-shrink-0 w-44 glass-panel rounded-xl p-4 border border-outline-variant/10 shadow-lg">
+<div class="aspect-[3/4] mb-4 overflow-hidden rounded-lg bg-surface-container flex items-center justify-center">
+<img alt="Laphroaig 10" class="w-full h-full object-contain p-2" data-alt="Bottle of Laphroaig 10 Year Old Single Malt Scotch Whisky on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWmd--pEvJG4JJpAgYSnyX-qcMQvs3Y523mJsIavL7paSi0eU3WFUwC2mK2yqlcAEoOIeXNgQy5CskYrAZxvTLf8QGNVyUMn1e4x8y3NDTuJCh40wQBYngPYIS2eX-qUgBhoQDlScXxO3WspB5rWt8S9Z2zFgN81OBeJx5zrmwN8VMFTvHASxXbUwFetHDADev4b_M1QWkSGm9rYNo6qaSi8bVHKUjKkYU4MtXvYBcdZMTOtODPFznHReJ11UOqgaj_PXPKUG_Bw"/>
+</div>
+<h4 class="font-headline text-sm text-on-surface leading-tight mb-1">Laphroaig 10</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Islay Malt</p>
+<div class="mt-3 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs font-bold text-primary">$64.00</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+<!-- Recommended Item 2 -->
+<div class="snap-start flex-shrink-0 w-44 glass-panel rounded-xl p-4 border border-outline-variant/10 shadow-lg">
+<div class="aspect-[3/4] mb-4 overflow-hidden rounded-lg bg-surface-container flex items-center justify-center">
+<img alt="Ardbeg Uigeadail" class="w-full h-full object-contain p-2" data-alt="Premium dark bottle of Ardbeg Uigeadail whiskey with amber highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC64KkEwN9Q3IqzBhUsC5NMAv15OIa1iqyzdFwIfUO8Q3wWJBqO--79jZ3NV2xIqbfoDg0zuB__xY39hHDJ7gzCdGV8azU8cBNfBrm4SmcNoSYp6YqVPU2pEy6jpepK1b2M_nly6qIoQEv_3R56qwCzr1NWSQbZCwX6nrHywCP8s_CsmZZdY-qDfrJXOnk8WzAT-HHOSj7qSQVrNvIicpd766g9z29spmVS-EsuXKeOt9XpkRTilHQnGZq-SnHMHIB9ElwTd0QqOg"/>
+</div>
+<h4 class="font-headline text-sm text-on-surface leading-tight mb-1">Ardbeg Uigeadail</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Peated Expression</p>
+<div class="mt-3 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs font-bold text-primary">$89.00</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+<!-- Recommended Item 3 -->
+<div class="snap-start flex-shrink-0 w-44 glass-panel rounded-xl p-4 border border-outline-variant/10 shadow-lg">
+<div class="aspect-[3/4] mb-4 overflow-hidden rounded-lg bg-surface-container flex items-center justify-center">
+<img alt="Lagavulin 16" class="w-full h-full object-contain p-2" data-alt="Elegant bottle of Lagavulin 16 Year Old Single Malt Scotch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3AfYXNFT17PgIiIlP4GeH_1r-hjktPqeJFAUiUS6ncorWcQHb5O8S3SDkmDx3IJi32kYRn39aZi1Lh7oZdvzEiT9ojWJEKh-PpS2NPyj9kmILmYBJ9ljPaT4bDQNYhCXA-1AKGFGn384NVIMk5UJcVho0f-BE7oV5g4dbdKHABauI3RZweKR4PAeiiO1Y3llZ5s7u193qJofG3N6HGabgovhN54FcZ0_SvJYUDTlJUUx70rL2TMVy7DtCB8ZlXZz-uaGE_tc6jw"/>
+</div>
+<h4 class="font-headline text-sm text-on-surface leading-tight mb-1">Lagavulin 16</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">King of Islay</p>
+<div class="mt-3 pt-3 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="text-xs font-bold text-primary">$110.00</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-zinc-900/60 backdrop-blur-xl rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-amber-200 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-amber-200 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="liquor">liquor</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium">Collection</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 hover:text-amber-200 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="add_circle">add_circle</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium">Add Note</span>
+</div>
+<div class="flex flex-col items-center justify-center text-amber-400 drop-shadow-[0_0_8px_rgba(212,175,55,0.4)] transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1" data-icon="dna" style="font-variation-settings: 'FILL' 1;">genetics</span>
+<span class="font-sans text-[10px] uppercase tracking-widest font-medium">DNA</span>
+</div>
+</nav>
+</body></html>

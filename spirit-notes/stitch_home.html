@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Manrope:wght@700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#5d4201",
+              "on-primary": "#412d00",
+              "surface": "#131313",
+              "tertiary-container": "#a7a5a5",
+              "surface-container-lowest": "#0e0e0e",
+              "surface-dim": "#131313",
+              "outline-variant": "#4e4639",
+              "surface-variant": "#353534",
+              "inverse-on-surface": "#313030",
+              "secondary-fixed": "#ffdad7",
+              "on-tertiary-fixed": "#1b1c1c",
+              "on-secondary": "#5a1b1a",
+              "surface-bright": "#393939",
+              "primary": "#e9c176",
+              "on-secondary-fixed-variant": "#76302e",
+              "on-background": "#e5e2e1",
+              "primary-fixed-dim": "#e9c176",
+              "background": "#131313",
+              "tertiary-fixed-dim": "#c8c6c5",
+              "primary-fixed": "#ffdea5",
+              "inverse-primary": "#775a19",
+              "on-error": "#690005",
+              "on-secondary-container": "#fb9b95",
+              "on-error-container": "#ffdad6",
+              "error": "#ffb4ab",
+              "error-container": "#93000a",
+              "tertiary-fixed": "#e4e2e1",
+              "surface-container": "#201f1f",
+              "on-tertiary": "#303030",
+              "on-secondary-fixed": "#3d0507",
+              "secondary-fixed-dim": "#ffb3ae",
+              "on-surface": "#e5e2e1",
+              "outline": "#9a8f80",
+              "surface-tint": "#e9c176",
+              "surface-container-highest": "#353534",
+              "secondary-container": "#76302e",
+              "surface-container-low": "#1c1b1b",
+              "on-primary-container": "#4e3700",
+              "inverse-surface": "#e5e2e1",
+              "secondary": "#ffb3ae",
+              "primary-container": "#c5a059",
+              "tertiary": "#c8c6c5",
+              "on-tertiary-container": "#3b3b3b",
+              "surface-container-high": "#2a2a2a",
+              "on-surface-variant": "#d1c5b4",
+              "on-tertiary-fixed-variant": "#474747",
+              "on-primary-fixed": "#261900"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(32, 31, 31, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(233, 193, 118, 0.1);
+        }
+        .stat-card {
+            background-color: #201f1f; /* surface-container */
+            border: 1px solid rgba(78, 70, 57, 0.3); /* outline-variant */
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            background-color: #2a2a2a; /* surface-container-high */
+            border-color: rgba(233, 193, 118, 0.2);
+        }
+        .hexagon-mask {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#131313] shadow-[0_40px_40px_-15px_rgba(229,226,225,0.06)]">
+<div class="flex items-center gap-4">
+<img alt="Spirit Notes Logo" class="h-10 w-auto object-contain hover:opacity-80 transition-opacity cursor-pointer" src="https://lh3.googleusercontent.com/aida/ADBb0ugcO_nGc0111O0_g0Mmzs6UyuQn7ck3T8ZLJArKvJugR6Wc-9UVIG4mivMF4ebOVVFe9jYDpB2O4iSIAlv_5hxN4TSdjyePn5YnZoW5Cx2AS_7lBavk1gycTxlQi_9iGYWjpDWsxPRgDZbX7_aE-Wl-hERwVDinXf0ed29OzuNuucXaAE1DxIYqqX0cvQo0crb3Bzgkj4O_uuyYySefPXQLP3y8zLh39unIGXqyuLklfqhgz8z6_jzDjLHpLA9-JFZ9yOx1bHA"/>
+</div>
+<h1 class="font-headline font-bold tracking-tight text-2xl text-[#e9c176]">Spirit Notes</h1>
+<div class="flex items-center gap-4">
+<button class="text-[#d1c5b4] hover:text-[#e9c176] transition-colors duration-300 active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-10">
+<!-- Welcome Header -->
+<section class="space-y-1">
+<p class="text-primary font-label text-xs uppercase tracking-[0.2em]">Curated for you</p>
+<h2 class="font-headline text-4xl font-extrabold tracking-tight">Welcome back, Chulsoo Kim</h2>
+</section>
+<!-- Taste Persona Section -->
+<section class="glass-card rounded-2xl p-6 relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="insights">insights</span>
+</div>
+<div class="relative z-10 space-y-3">
+<p class="text-primary font-label text-[10px] uppercase tracking-[0.25em] font-bold">Your Taste Persona</p>
+<div class="space-y-1">
+<h3 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Smoke &amp; Oak Connoisseur</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed max-w-lg">
+                        You favor deep, peaty malts with a hint of seaside brine and toasted spice notes.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<!-- Today's Curation -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-2xl font-bold">Today's Curation</h3>
+<span class="text-primary font-label text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="auto_awesome">auto_awesome</span>
+                    Daily Refresh
+                </span>
+</div>
+<div class="glass-card rounded-[2rem] overflow-hidden flex flex-col lg:flex-row min-h-[400px]">
+<div class="lg:w-1/2 relative min-h-[350px] overflow-hidden">
+<img alt="Lagavulin 16 Year Old Bottle" class="absolute inset-0 w-full h-full object-cover" data-alt="Premium whiskey bottle with dark atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0myTLgap76MOF3pOzh35BB0dhDVMEc6bUs-0G2kaoLCadl0Vq5v_Q6Vh1Fo2F5bOIfTnqTHVq6xqpx242pbz332pT4L_YxAcL0XIlGI38JmB7tj6pV5fAuQrq2hm3GhJX79Ln9JrKf4s5kXKD7_zxI0tQMpuui1E9wpYM5yodrowe4H5AhJcp1VlEeSt3KkDWEVvtpqx7ESHOuQQP1VrpCHbbe9zdF2S9TayOu6OMSvqSekJiTzETlgqMircp0co1sLZchAoU8A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+<div class="absolute top-6 left-6">
+<span class="bg-primary/90 text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">98% Match</span>
+</div>
+</div>
+<div class="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center space-y-6">
+<div class="space-y-4">
+<h4 class="font-headline font-extrabold tracking-tight text-4xl"><span class="block text-primary font-bold uppercase tracking-[0.2em] mb-1 opacity-80 text-[9px]">Lagavulin Distillery</span>Lagavulin 16Y</h4>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="text-primary font-label text-[10px] font-bold uppercase tracking-[0.15em]">Category</span>
+<span class="h-px flex-1 bg-outline-variant/30"></span>
+<span class="text-on-surface text-xs font-medium">Whiskey &gt; Scotch &gt; Single Malt</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-primary font-label text-[10px] font-bold uppercase tracking-[0.15em]">Origin</span>
+<span class="h-px flex-1 bg-outline-variant/30"></span>
+<span class="text-on-surface text-xs font-medium">Scotland &gt; Islay</span>
+</div>
+<div class="grid grid-cols-2 gap-2 py-2">
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">ABV</p>
+<p class="text-xs font-bold text-on-surface">43.0%</p>
+</div>
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">VOLUME</p>
+<p class="text-xs font-bold text-on-surface">700ml</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Flavor Radar -->
+<div class="flex items-center gap-8 pt-4">
+<div class="flex flex-row items-center gap-10 w-full"><!-- Radar Background & Shape -->
+<div class="relative flex items-center justify-center shrink-0 font-headline w-32 h-32"><!-- Radar Background Rings -->
+<div class="absolute inset-0 m-3 hexagon-mask bg-outline-variant/10 scale-100"></div>
+<div class="absolute inset-0 m-3 hexagon-mask bg-outline-variant/10 scale-75"></div>
+<div class="absolute inset-0 m-3 hexagon-mask bg-outline-variant/10 scale-50"></div>
+<!-- Radar Value Shape -->
+<div class="absolute inset-0 m-3 hexagon-mask bg-primary/30 border-2 border-primary" style="clip-path: polygon(50% 10%, 90% 35%, 85% 70%, 50% 90%, 15% 70%, 10% 35%);"></div>
+<!-- Axis Labels -->
+<span class="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] font-extrabold text-primary uppercase tracking-widest">Peat</span>
+<span class="absolute top-2 -right-6 text-[8px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Floral</span>
+<span class="absolute bottom-2 -right-8 text-[8px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Woody</span>
+<span class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[8px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Sweet</span>
+<span class="absolute bottom-2 -left-8 text-[8px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Spicy</span>
+<span class="absolute top-2 -left-6 text-[8px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Fruity</span></div>
+<!-- Numeric Data Grid -->
+<div class="grid grid-cols-2 gap-x-8 gap-y-4 flex-1">
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(233,193,118,0.5)]"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-primary tracking-[0.15em] mb-0.5">Peat</span>
+<span class="text-sm font-bold text-on-surface">9.5</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Floral</span>
+<span class="text-sm font-bold text-on-surface">2.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Fruity</span>
+<span class="text-sm font-bold text-on-surface">4.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Woody</span>
+<span class="text-sm font-bold text-on-surface">6.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Spicy</span>
+<span class="text-sm font-bold text-on-surface">4.5</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Sweet</span>
+<span class="text-sm font-bold text-on-surface">3.5</span>
+</div>
+</div>
+</div></div>
+</div>
+<button class="w-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-all duration-300 shadow-sm border border-outline-variant/30 font-label text-xs font-bold uppercase tracking-widest px-10 py-4 rounded-lg active:scale-95">
+                        View Full Profile
+                    </button>
+</div>
+</div>
+</section>
+<!-- Recent Notes -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="font-headline text-2xl font-bold">Recent Notes</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors text-sm font-bold uppercase tracking-widest">See All</button>
+</div>
+<div class="flex gap-6 overflow-x-auto pb-8 snap-x no-scrollbar">
+<!-- Macallan Card -->
+<div class="snap-start min-w-[300px] group">
+<div class="stat-card rounded-2xl p-5 transition-all duration-500 hover:-translate-y-2">
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-6 bg-surface-container-highest">
+<img alt="Macallan 12 Bottle" class="w-full h-full object-cover" data-alt="Elegant scotch bottle with golden highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWOKyDCwN2SghAqW8GvxhPDvGsfMe2obFoCAs5ARQR8IkhJrrGtti25IVgET1z_1ZG-0Yuc_nagsXm8zfeuIsZXOqsWXwl8aS9nxwdAk2RHVPKcAlr_tgVr7Pt8IsM_P-m6PCkuAmAHWz0GUXzGZoiIQKcYnkeXaKOto77-a-c79-Tp01K4SVhXvLot5n-qeSlzLUtNKdl_1FCNWwHxZJAwVY_mqrDFTmlkTHtp3XYaJz3S_77h-cZO_hHlyoN5a4EJMp55FskTg"/>
+<div class="absolute bottom-3 left-3 flex items-center bg-surface/80 backdrop-blur-md px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.8</span>
+</div>
+</div>
+<div class="space-y-4">
+<h5 class="font-headline text-xl font-bold leading-tight"><span class="block text-primary text-[9px] font-bold uppercase tracking-wider mb-1">The Macallan</span>Macallan 12 Sherry Oak</h5>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+<span class="text-primary">Category</span>
+<span class="text-on-surface-variant">Whiskey &gt; Scotch</span>
+</div>
+<div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+<span class="text-primary">Origin</span>
+<span class="text-on-surface-variant">Scotland &gt; Speyside</span>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/20">
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">ABV</p>
+<p class="text-xs font-bold text-on-surface">40.0%</p>
+</div>
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">Vol</p>
+<p class="text-xs font-bold text-on-surface">700ml</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Hibiki Card -->
+<div class="snap-start min-w-[300px] group">
+<div class="stat-card rounded-2xl p-5 transition-all duration-500 hover:-translate-y-2">
+<div class="relative aspect-[4/5] rounded-xl overflow-hidden mb-6 bg-surface-container-highest">
+<img alt="Hibiki Harmony Bottle" class="w-full h-full object-cover" data-alt="Japanese whiskey bottle with faceted glass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD3RnCMNYxcW2KBSyEBWhs0Mdpuh_IYklyN0huPJ0GhZN5tXpCjoOmwOcelcOKWjZsgxaPWZhvfPdVY8JN_UdhuRPpO9koMIvdmoz7OOciiVQXpKYTxvyWbDVvnSi0h_j29cvlAgqBf2N3SvAZ0qY0GWpXC9LUk6uIHxQr1AQcDqq3CuIKsgQ9a_aqVnDOKq9umdHP2NzaUCY67tnY_D9edhv6TvZVdJDqc1swGuwTi9WbUEixvICzu37ebQcuDZMn7cWDNTiPzQ"/>
+<div class="absolute bottom-3 left-3 flex items-center bg-surface/80 backdrop-blur-md px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm mr-1" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.5</span>
+</div>
+</div>
+<div class="space-y-4">
+<h5 class="font-headline text-xl font-bold leading-tight"><span class="block text-primary text-[9px] font-bold uppercase tracking-wider mb-1">Suntory</span>Hibiki Harmony</h5>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+<span class="text-primary">Category</span>
+<span class="text-on-surface-variant">Whiskey &gt; Japanese</span>
+</div>
+<div class="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+<span class="text-primary">Origin</span>
+<span class="text-on-surface-variant">Japan &gt; Multiple</span>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant/20">
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">ABV</p>
+<p class="text-xs font-bold text-on-surface">43.0%</p>
+</div>
+<div class="bg-surface-container-highest/30 p-3 rounded-lg border border-outline-variant/30">
+<p class="text-primary text-[9px] font-bold uppercase tracking-wider">Vol</p>
+<p class="text-xs font-bold text-on-surface">700ml</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-end px-2 pb-6 pt-3 bg-[#131313]/95 backdrop-blur-2xl border-t border-outline-variant/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-24">
+<a class="flex flex-1 flex-col items-center justify-center transition-all duration-300 text-on-surface-variant/50 !text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;">home</span>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Home</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center hover:text-primary transition-all duration-300 text-on-surface-variant/50" href="#">
+<span class="material-symbols-outlined text-2xl">liquor</span>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Collection</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center text-[#d1c5b4] hover:text-primary transition-all duration-300 group" href="#">
+<div class="relative -top-6">
+<div class="bg-primary w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-primary/20 border-4 border-background active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-background text-3xl font-bold" style="font-variation-settings: 'FILL' 1, 'wght' 600;">add</span>
+</div>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold mt-[-16px]">Add</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center hover:text-primary transition-all duration-300 text-on-surface-variant/50" href="#">
+<span class="material-symbols-outlined text-2xl">menu_book</span>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Encyclopedia</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center hover:text-primary transition-all duration-300 text-on-surface-variant/50" href="#">
+<span class="material-symbols-outlined text-2xl">query_stats</span>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">DNA</span>
+</a></nav>
+</body></html>

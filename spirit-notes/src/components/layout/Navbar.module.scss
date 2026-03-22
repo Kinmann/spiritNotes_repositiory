@@ -1,0 +1,99 @@
+@use "@/styles/variables" as *;
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rem;
+  z-index: 50;
+  background-color: #131313;
+  box-shadow: 0 40px 40px -15px rgba(229, 226, 225, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  transition: all 0.3s;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logoLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.logoImg {
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+  transition: opacity 0.3s;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.title {
+  font-family: var(--font-heading);
+  color: #e9c176;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notificationBtn {
+  color: var(--on-surface-variant);
+  transition: color 0.3s, background-color 0.3s;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--primary);
+    background-color: var(--surface-container-high);
+  }
+
+  span {
+    font-size: 1.5rem;
+  }
+}
+
+.avatarContainer {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid rgb(255 198 62 / 0.2); /* primary/20 */
+  transition: border-color 0.3s;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}

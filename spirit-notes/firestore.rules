@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. 공통 데이터 (전체 공개 읽기)
+    match /spirits/{spiritId} { allow read: if true; }
+    match /categories/{categoryId} { allow read: if true; }
+    match /locations/{locationId} { allow read: if true; }
+    
+    // 2. 사용자 데이터 (본인만 접근 가능)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // 하위 컬렉션 전체 (notes, bookmarks 등)
+      match /{allSubcollections=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // 3. 전역 노츠 컬렉션 (필요시 하위 호환성 위해 유지)
+    match /notes/{noteId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}    

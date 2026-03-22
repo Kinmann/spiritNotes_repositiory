@@ -1,0 +1,8 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+# Ignore service accounts and temporary payloads
+*firebase-adminsdk*.json
+github_payload.json

@@ -1,0 +1,76 @@
+@use "@/styles/variables" as *;
+
+.ratingPicker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  background: rgba($surface-variant, 0.2);
+  border-radius: 24px;
+  border: 1px solid rgba($outline-variant, 0.1);
+
+  .ratingDisplay {
+    font-size: 36px;
+    font-family: var(--font-heading);
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .starsContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .starWrapper {
+      position: relative;
+      cursor: pointer;
+
+      .touchAreas {
+        display: flex;
+        position: relative;
+        z-index: 10;
+
+        .halfTouch {
+          width: 20px;
+          height: 40px;
+        }
+
+        .fullTouch {
+          width: 20px;
+          height: 40px;
+        }
+      }
+
+      .starIconWrapper {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .starIcon {
+          font-size: 36px;
+          transition: all 0.2s ease;
+
+          &.active {
+            color: var(--primary);
+          }
+
+          &.inactive {
+            color: rgba($outline-variant, 0.3);
+          }
+        }
+      }
+    }
+  }
+
+  .hintText {
+    font-size: 10px;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 600;
+  }
+}

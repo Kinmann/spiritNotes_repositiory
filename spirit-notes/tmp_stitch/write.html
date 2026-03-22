@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-dim": "#131316",
+            "on-tertiary-fixed-variant": "#653e00",
+            "error": "#ffb4ab",
+            "on-tertiary-fixed": "#2a1700",
+            "on-secondary-container": "#b6b5b4",
+            "tertiary": "#ffc479",
+            "surface-container": "#1f1f22",
+            "on-error-container": "#ffdad6",
+            "primary-container": "#e3aa00",
+            "on-secondary-fixed": "#1b1c1c",
+            "background": "#131316",
+            "surface-container-high": "#2a2a2d",
+            "on-background": "#e4e1e6",
+            "tertiary-fixed-dim": "#ffb95c",
+            "surface-tint": "#fbbc00",
+            "on-tertiary-container": "#623d00",
+            "on-primary-fixed": "#261a00",
+            "primary": "#ffc63e",
+            "inverse-on-surface": "#303033",
+            "on-surface": "#e4e1e6",
+            "on-primary-fixed-variant": "#5c4300",
+            "on-primary": "#402d00",
+            "surface-bright": "#39393c",
+            "secondary": "#c8c6c6",
+            "surface-container-lowest": "#0e0e11",
+            "primary-fixed": "#ffdfa0",
+            "inverse-primary": "#795900",
+            "inverse-surface": "#e4e1e6",
+            "secondary-fixed": "#e4e2e1",
+            "on-primary-container": "#5a4100",
+            "surface-variant": "#353438",
+            "outline-variant": "#4d4635",
+            "secondary-fixed-dim": "#c8c6c6",
+            "surface-container-low": "#1b1b1e",
+            "on-surface-variant": "#d0c5af",
+            "surface-container-highest": "#353438",
+            "on-secondary-fixed-variant": "#474747",
+            "on-secondary": "#303030",
+            "surface": "#131316",
+            "on-tertiary": "#462a00",
+            "secondary-container": "#474747",
+            "error-container": "#93000a",
+            "primary-fixed-dim": "#fbbc00",
+            "tertiary-container": "#f5a119",
+            "tertiary-fixed": "#ffddb7",
+            "outline": "#99907c",
+            "on-error": "#690005"
+          },
+          fontFamily: {
+            "headline": ["Noto Serif"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .radar-grid {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    .amber-gradient {
+      background: linear-gradient(135deg, #FFC63E 0%, #E3AA00 100%);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen pb-32">
+<!-- TopAppBar (Shared Component Implementation) -->
+<header class="fixed top-0 w-full z-50 bg-[#131316]/60 backdrop-blur-xl flex justify-between items-center px-6 h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#FFC63E] active:scale-95 duration-200 cursor-pointer" data-icon="arrow_back">arrow_back</span>
+<h1 class="font-headline text-xl tracking-tight text-[#FFC63E]">Tasting Notes</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#FFC63E] active:scale-95 duration-200 cursor-pointer" data-icon="more_vert">more_vert</span>
+</div>
+</header>
+<main class="mt-16 px-4 space-y-8">
+<!-- Hero Image Upload Section -->
+<section class="relative w-full aspect-[4/3] rounded-3xl overflow-hidden mt-4 group">
+<div class="absolute inset-0 bg-surface-container-high border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center transition-all group-hover:bg-surface-variant/40">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="add_a_photo">add_a_photo</span>
+</div>
+<p class="font-label text-on-surface-variant text-sm uppercase tracking-widest font-semibold">Upload Whiskey Photo</p>
+</div>
+<img alt="Whiskey bottle in low light" class="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none" data-alt="Whiskey bottle with dramatic lighting in a dark library" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMnB1bViRTaXeZ9wnOXH5T64UW2Im0Mh2umBnxH5KgdYiNLftRNlTK-cajYqaW-tfFchq6f4-h5UgkVGs6mq4clTC744zr9wyJk5FxmWM57PBhq8-TgzRzPSJ7NqCNrcU7dNjZAyR9PfCyW-tlEMQOPgU55NqSYi-WQILycJaIDVirSO8V5PZhrSW4sAw9ws0d1WOjjwrv98yUCt_vL-UK6L_wy6RVQobxzbLWXK5spGtWLFfzqaRZB6RJv9KNy9g4LJYeUvvZFQ"/>
+</section>
+<!-- Basic Info Card -->
+<section class="bg-surface-variant/60 backdrop-blur-2xl rounded-3xl p-6 space-y-6">
+<h2 class="font-headline text-2xl text-on-surface">Basic Details</h2>
+<div class="space-y-4">
+<div class="group">
+<label class="block font-label text-xs uppercase tracking-widest text-on-surface-variant mb-1 ml-1">Liquor Name</label>
+<input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface placeholder:text-on-surface-variant/40 px-0 py-3 transition-colors" placeholder="e.g. Macallan 18 Year Old" type="text"/>
+</div>
+<div class="group">
+<label class="block font-label text-xs uppercase tracking-widest text-on-surface-variant mb-1 ml-1">Category</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface appearance-none px-0 py-3 transition-colors">
+<option>Single Malt Scotch</option>
+<option>Bourbon Whiskey</option>
+<option>Rye Whiskey</option>
+<option>Japanese Whisky</option>
+<option>Irish Whiskey</option>
+</select>
+<span class="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Rating Section -->
+<section class="bg-surface-variant/60 backdrop-blur-2xl rounded-3xl p-6 text-center space-y-4">
+<h2 class="font-headline text-2xl text-on-surface">Overall Rating</h2>
+<div class="flex justify-center gap-2">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-4xl text-outline-variant" data-icon="star">star</span>
+</div>
+<p class="font-body text-on-surface-variant text-sm italic">"A complex and balanced profile with a long finish."</p>
+</section>
+<!-- Flavor Profile Section -->
+<section class="bg-surface-variant/60 backdrop-blur-2xl rounded-3xl p-6 space-y-8">
+<h2 class="font-headline text-2xl text-on-surface">Flavor Profile</h2>
+<!-- Mock Radar Chart -->
+<div class="relative w-64 h-64 mx-auto flex items-center justify-center">
+<!-- Chart Grids -->
+<div class="absolute inset-0 radar-grid border border-outline-variant/20 scale-100"></div>
+<div class="absolute inset-0 radar-grid border border-outline-variant/20 scale-75"></div>
+<div class="absolute inset-0 radar-grid border border-outline-variant/20 scale-50"></div>
+<div class="absolute inset-0 radar-grid border border-outline-variant/20 scale-25"></div>
+<!-- Chart Data Shape -->
+<svg class="absolute inset-0 w-full h-full rotate-30" viewbox="0 0 100 100">
+<polygon fill="rgba(255, 198, 62, 0.3)" points="50,15 80,35 75,70 50,85 25,70 20,35" stroke="#FFC63E" stroke-width="1"></polygon>
+</svg>
+<!-- Labels -->
+<span class="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-tighter text-on-surface-variant">Sweetness</span>
+<span class="absolute top-1/4 -right-8 text-[10px] uppercase tracking-tighter text-on-surface-variant">Saltiness</span>
+<span class="absolute bottom-1/4 -right-8 text-[10px] uppercase tracking-tighter text-on-surface-variant">Body</span>
+<span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-tighter text-on-surface-variant">Acidity</span>
+<span class="absolute bottom-1/4 -left-8 text-[10px] uppercase tracking-tighter text-on-surface-variant">Bitterness</span>
+<span class="absolute top-1/4 -left-8 text-[10px] uppercase tracking-tighter text-on-surface-variant">Finish</span>
+</div>
+<!-- Sliders Grid -->
+<div class="grid grid-cols-3 gap-6 pt-4">
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-3/4 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Sweet</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-1/4 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Salt</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-2/3 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Body</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-1/2 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Acid</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-1/3 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Bitter</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="h-32 w-1.5 bg-surface-container-lowest rounded-full relative overflow-hidden">
+<div class="absolute bottom-0 left-0 w-full h-4/5 amber-gradient rounded-full"></div>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Finish</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Save Button -->
+<footer class="fixed bottom-0 left-0 w-full px-6 pb-10 pt-6 bg-gradient-to-t from-surface-dim via-surface-dim/95 to-transparent z-50">
+<button class="w-full amber-gradient h-16 rounded-2xl flex items-center justify-center gap-3 text-on-primary font-label font-extrabold uppercase tracking-widest shadow-[0_20px_40px_rgba(0,0,0,0.4)] active:scale-[0.98] transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="save" style="font-variation-settings: 'FILL' 1;">save</span>
+      테이스팅 노트 저장하기
+    </button>
+</footer>
+</body></html>

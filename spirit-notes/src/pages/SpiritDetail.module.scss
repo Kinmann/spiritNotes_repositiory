@@ -1,0 +1,290 @@
+.spiritDetailPage {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
+  color: #fff;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  transition: color 0.3s ease;
+  font-family: inherit;
+
+  &:hover {
+    color: #f2ca50;
+  }
+
+  .backIcon {
+    font-size: 20px;
+  }
+}
+
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 3rem;
+  
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.imageSection {
+  .imageWrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .placeholderIcon {
+      font-size: 80px;
+      color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .quickStats {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    .statItem {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      .statLabel {
+        display: block;
+        font-size: 12px;
+        color: #808080;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+      }
+
+      .statValue {
+        font-size: 18px;
+        font-weight: 600;
+        color: #f2ca50;
+      }
+
+      &.distilleryItem {
+        grid-column: 1 / -1;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .statLabel {
+          white-space: nowrap;
+          margin-bottom: 0;
+        }
+
+        .statValue {
+          font-size: 15px;
+          font-weight: 500;
+          color: #e0d5be;
+        }
+      }
+    }
+  }
+}
+
+.detailsSection {
+  .header {
+    margin-bottom: 2rem;
+
+    .category {
+      color: #f2ca50;
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .origin {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #888;
+      font-size: 14px;
+      margin-top: 0.5rem;
+      margin-bottom: 1.5rem;
+
+      .originIcon {
+        font-size: 18px;
+        color: #f2ca50;
+      }
+    }
+
+    .distillery {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: #aaa;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 0.3rem;
+      margin-bottom: 0.3rem;
+
+      .distilleryIcon {
+        font-size: 18px;
+        color: #c0a840;
+      }
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .description {
+      color: #b0b0b0;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 2rem 0 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #f2ca50;
+    
+    .sectionIcon {
+      font-size: 20px;
+    }
+  }
+
+  .radarWrapper {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .scoresGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+
+    .scoreItem {
+      .scoreHeader {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 14px;
+
+        .scoreLabel {
+          color: #d0c5af;
+          text-transform: capitalize;
+        }
+
+        .scoreValue {
+          color: #f2ca50;
+          font-weight: 600;
+        }
+      }
+
+      .progressBar {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        overflow: hidden;
+
+        .progressFill {
+          height: 100%;
+          background: linear-gradient(90deg, #f2ca50, #e0b020);
+          border-radius: 3px;
+        }
+      }
+    }
+  }
+
+  .actions {
+    margin-top: 3rem;
+
+    .primaryButton {
+      width: 100%;
+      background: #f2ca50;
+      color: #000;
+      border: none;
+      padding: 1.2rem;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: transform 0.2s ease, background 0.2s ease;
+
+      &:hover {
+        background: #e0b020;
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+.loadingWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 1rem;
+  color: #f2ca50;
+
+  .loadingIcon {
+    font-size: 48px;
+    animation: spin 2s linear infinite;
+  }
+
+  .loadingText {
+    font-size: 16px;
+    color: #a0a0a0;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

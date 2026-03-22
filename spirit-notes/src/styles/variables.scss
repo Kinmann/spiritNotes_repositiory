@@ -1,0 +1,62 @@
+// Colors
+$background: #131313;
+$foreground: #e5e2e1; // Noto Serif on_surface
+$surface: #131313;
+$surface-dim: #0e0e0e;
+$on-surface: #e5e2e1;
+$surface-variant: #353534;
+$on-surface-variant: #d7c2c0;
+$surface-container-lowest: #0e0e0e;
+$surface-container-low: #1c1b1b;
+$surface-container: #201f1f;
+$surface-container-high: #2a2a2a;
+$surface-container-highest: #353534;
+
+$primary: #e9c176; // Stitch Gold
+$on-primary: #3c2f00;
+$secondary: #76302e; // Stitch Burgundy
+$on-secondary: #fdb4b1;
+
+$outline: rgba(159, 140, 139, 0.4);
+$outline-variant: rgba(78, 70, 57, 0.3); // Stitch outline effect
+$error: #ffb4ab;
+
+// Radius
+$radius: 0.75rem;
+
+// Fonts
+$font-heading: 'Manrope', sans-serif;
+$font-sans: 'Inter', sans-serif;
+
+// Mixins
+@mixin glass-card {
+  background-color: rgba(32, 31, 31, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 1rem;
+  border: 1px solid rgba(233, 193, 118, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+@mixin stat-card {
+  background-color: #201f1f;
+  border: 1px solid rgba(78, 70, 57, 0.3);
+  border-radius: 1rem;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #2a2a2a;
+    transform: translateY(-4px);
+  }
+}
+
+@mixin amber-gradient {
+  background: linear-gradient(135deg, #FFC63E 0%, #E3AA00 100%);
+}
+
+@mixin amber-gradient-text {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(135deg, #FFC63E 0%, #E3AA00 100%);
+}

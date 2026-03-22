@@ -1,0 +1,434 @@
+@use "@/styles/variables" as *;
+
+.catalogCard {
+  background: var(--surface-container-low);
+  border-radius: 4px;
+  padding: 8px;
+  border: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  &:hover {
+    border-color: rgba($primary, 0.3);
+    transform: translateY(-2px);
+    
+    .imageWrapper img {
+      transform: scale(1.05);
+    }
+  }
+
+  .matchBadge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background: var(--secondary);
+    color: var(--on-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .quickAdd {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    &:hover {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    span {
+      font-size: 20px;
+    }
+  }
+
+  .imageWrapper {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface-container-high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .placeholderIcon {
+      font-size: 40px;
+      color: rgba($on-surface-variant, 0.2);
+    }
+  }
+
+  .info {
+    padding: 0 4px 4px;
+
+    h4 {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+
+    p {
+      font-size: 11px;
+      color: var(--on-surface-variant);
+      margin: 2px 0 0;
+    }
+  }
+}
+
+.heroCard {
+  @include stat-card;
+  flex-direction: row;
+  height: auto;
+  min-height: 240px;
+  padding: 12px;
+  gap: 20px;
+  align-items: stretch;
+
+  .heroImageWrapper {
+    flex: 8;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface-container-high);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .placeholderIconWrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-container-highest);
+      color: rgba($on-surface-variant, 0.2);
+      
+      span { font-size: 48px; }
+    }
+  }
+
+  .heroInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+  }
+
+  .heroHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .distilleryName {
+    font-size: 0.6rem;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 4px;
+    opacity: 0.8;
+  }
+
+  .heroName {
+    font-size: 2.25rem;
+    font-family: var(--font-heading);
+    line-height: 1.1;
+    font-weight: 800;
+    color: var(--on-surface);
+    margin: 0;
+    letter-spacing: -0.02em;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .heroQuickAdd {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba($primary, 0.4);
+    }
+    
+    span { font-size: 24px; font-weight: 600; }
+  }
+
+  .specList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .specItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .specLabel {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .specDivider {
+      flex: 1;
+      height: 1px;
+      background: rgba($outline-variant, 0.3);
+    }
+
+    .specValue {
+      font-size: 0.75rem;
+      color: var(--on-surface);
+      font-weight: 500;
+    }
+  }
+
+  .specGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .smallSpecItem {
+    background: rgba($surface-container-highest, 0.3);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba($outline-variant, 0.3);
+
+    .smallSpecLabel {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 2px;
+    }
+
+    .smallSpecValue {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: 0;
+    }
+  }
+
+  .flavorRadarContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4%;
+    padding-top: 0.5rem;
+    width: 100%;
+  }
+
+  .radarGraphic {
+    position: relative;
+    width: 48%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hexagonMask {
+    position: absolute;
+    inset: 0.5rem;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+
+  .radarBg {
+    background: rgba($outline-variant, 0.1);
+  }
+
+  .scale100 { transform: scale(1); }
+  .scale75 { transform: scale(0.75); }
+  .scale50 { transform: scale(0.5); }
+
+  .radarValueShape {
+    position: absolute;
+    inset: 0.5rem;
+    background: rgba($primary, 0.3);
+    border: 1.5px solid var(--primary);
+  }
+
+  .radarAxisLabel {
+    position: absolute;
+    font-size: 0.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba($on-surface-variant, 0.8);
+  }
+
+  .axisTop { top: -0.4rem; left: 50%; transform: translateX(-50%); color: var(--primary); }
+  .axisTopRight { top: 0.8rem; right: -0.5rem; }
+  .axisBottomRight { bottom: 0.8rem; right: -0.75rem; }
+  .axisBottom { bottom: -0.4rem; left: 50%; transform: translateX(-50%); }
+  .axisBottomLeft { bottom: 0.8rem; left: -0.75rem; }
+  .axisTopLeft { top: 0.8rem; left: -0.5rem; }
+
+  .radarDataGrid {
+    width: 48%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 1rem;
+  }
+
+  .dataItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .dotPrimary {
+    background: var(--primary);
+    box-shadow: 0 0 8px rgba($primary, 0.5);
+  }
+
+  .dotQuiet {
+    background: rgba($outline-variant, 0.4);
+  }
+
+  .dataTexts {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dataLabel {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.8;
+  }
+
+  .dataValue {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--on-surface);
+  }
+
+  .fullProfileButton {
+    width: 100%;
+    background: var(--surface-container);
+    color: var(--on-surface);
+    border: 1px solid rgba($outline-variant, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      background: var(--surface-container-high);
+      border-color: rgba($primary, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .heroCard {
+    flex-direction: column;
+    
+    .heroImageWrapper {
+      flex: none;
+      height: 350px;
+      width: 100%;
+    }
+    
+    .heroInfo {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .heroCard {
+    .heroImageWrapper {
+      height: 250px;
+    }
+    
+    .heroInfo {
+      padding: 1rem 0;
+      gap: 1rem;
+    }
+
+    .heroName {
+      font-size: 1.5rem; // Slightly smaller to fit better with 2-col grids below
+      margin-bottom: 0.25rem;
+    }
+
+    // Removed grid overrides to maintain 2-col layout like the reference
+  }
+}
