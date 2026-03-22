@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { auth } from '../firebase';
-import { 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+import { auth, isFirebaseConfigured } from '../firebase';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
   signInWithPopup
@@ -13,13 +13,17 @@ const useAuthStore = create((set) => ({
   user: null,
   loading: true,
   error: null,
+  firebaseConfigured: isFirebaseConfigured,
 
   setUser: (user) => set({ user, loading: false }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 
   init: () => {
-    // Only set up the listener once
+    if (!isFirebaseConfigured || !auth) {
+      set({ user: null, loading: false, firebaseConfigured: false });
+      return () => {};
+    }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       set({ user, loading: false });
     });

@@ -16,7 +16,7 @@ import { Toaster } from '@/components/ui/sonner';
 import styles from './App.module.scss';
 
 function App() {
-  const { user, loading, init } = useAuthStore();
+  const { user, loading, firebaseConfigured, init } = useAuthStore();
 
   useEffect(() => {
     const unsubscribe = init();
@@ -27,6 +27,23 @@ function App() {
 
   if (loading) {
     return <div className={styles.loadingScreen}>Loading Spirit Notes...</div>;
+  }
+
+  if (!firebaseConfigured) {
+    return (
+      <div className={styles.loadingScreen}>
+        <div style={{ textAlign: 'center', maxWidth: 480, padding: '0 24px' }}>
+          <h2 style={{ marginBottom: 12 }}>Firebase Not Configured</h2>
+          <p style={{ color: 'var(--on-surface-variant)', lineHeight: 1.6 }}>
+            Set the following environment variables in Netlify:<br />
+            <code style={{ fontSize: '0.85em' }}>
+              VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN,
+              VITE_FIREBASE_PROJECT_ID, VITE_FIREBASE_APP_ID
+            </code>
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
