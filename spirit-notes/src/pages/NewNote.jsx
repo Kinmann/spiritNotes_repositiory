@@ -5,8 +5,7 @@ import { db, auth, storage } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
-import RatingPicker from '@/components/common/RatingPicker';
-import FlavorRadarChart from '@/components/common/FlavorRadarChart';
+// Removed unused RatingPicker and FlavorRadarChart
 import styles from './NewNote.module.scss';
 
 const NewNote = () => {
@@ -21,7 +20,7 @@ const NewNote = () => {
     title: '',
     name: '',
     distillery: '',
-    category: 'Whisky',
+    category: '',
     categoryId: '',
     locationId: '',
     categoryHierarchy: [],
@@ -317,72 +316,88 @@ const NewNote = () => {
 
   return (
     <div className={styles.newNotePage}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.leftSection}>
-          <span 
-            className={`material-symbols-outlined ${styles.backIcon}`} 
-            onClick={() => navigate(-1)}
-          >
-            arrow_back
-          </span>
-          <h1>{isEdit ? 'Edit Note' : 'Tasting Notes'}</h1>
-        </div>
-        <span className={`material-symbols-outlined ${styles.moreIcon}`}>
-          more_vert
-        </span>
+      {/* Top Navigation Header */}
+      <header className={styles.stickyHeader}>
+        <button 
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+        >
+          <span className="material-symbols-outlined">arrow_back</span>
+        </button>
       </header>
 
-      <form onSubmit={handleSubmit} className={styles.noteForm}>
-        {/* Note Title */}
+      <main className={styles.mainContent}>
+        {/* Header Section: Title Input */}
         <section className={styles.titleSection}>
           <input 
+            className={styles.noteTitleInput}
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="노트 제목 입력 (예: 친구와의 첫 만남)"
-            className={styles.titleInput}
+            placeholder="Enter tasting name..."
           />
         </section>
 
-        {/* Photo Upload */}
-        <section className={styles.photoUpload} onClick={handleImageClick}>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageChange} 
-            accept="image/*" 
-            style={{ display: 'none' }} 
-          />
-          {imagePreview ? (
-            <div className={styles.previewContainer}>
-              <img src={imagePreview} alt="Preview" className={styles.previewImg} />
-              <div className={styles.changeOverlay}>
-                <span className="material-symbols-outlined">edit</span>
-                <span>Change Photo</span>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.uploadPlaceholder}>
-              <div className={styles.iconWrapper}>
-                <span className={`material-symbols-outlined ${styles.uploadIcon}`}>add_a_photo</span>
-              </div>
-              <p className={styles.label}>
-                Upload Whiskey Photo
-              </p>
-            </div>
-          )}
-        </section>
-
-        {/* Spirit Search - formSection 바깥에 배치하여 드롭다운이 다른 섹션에 가리지 않게 함 */}
-        {!isEdit && (
-          <div className={styles.searchContainer}>
-            <div className={styles.searchInputWrapper}>
-              <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+        {/* Main Grid Content */}
+        <div className={styles.mainGrid}>
+          {/* Left Column: Image & Rating */}
+          <div className={styles.leftCol}>
+            {/* Image Upload / Preview */}
+            <div className={styles.imageUploadCard} onClick={handleImageClick}>
               <input 
-                type="text" 
-                placeholder="주류 검색 (이름으로 찾기)" 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageChange} 
+                accept="image/*" 
+                className={styles.hidden}
+              />
+              {imagePreview ? (
+                <>
+                  <img className={styles.previewImage} src={imagePreview} alt="Spirit preview" />
+                  <div className={styles.imageOverlay}>
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_a_photo</span>
+                    <span>Update Photo</span>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.uploadPlaceholder}>
+                  <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>add_a_photo</span>
+                  <span className={styles.uploadLabel}>Upload Photo</span>
+                </div>
+              )}
+            </div>
+
+            {/* Rating */}
+            <div className={styles.ratingCard}>
+              <h3 className={styles.cardLabel}>Personal Rating</h3>
+              <div className={styles.ratingStars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span 
+                    key={star}
+                    className="material-symbols-outlined cursor-pointer"
+                    style={{ 
+                      fontVariationSettings: star <= formData.rating ? "'FILL' 1" : "'FILL' 0",
+                      color: star <= formData.rating ? 'var(--primary)' : 'var(--on-surface-variant)',
+                      opacity: star <= formData.rating ? 1 : 0.3,
+                      fontSize: '32px'
+                    }}
+                    onClick={() => handleRatingChange(star)}
+                  >
+                    star
+                  </span>
+                ))}
+              </div>
+            </div>
+
+          {/* Search Encyclopedia */}
+          {!isEdit && (
+            <div className={styles.searchWrapper}>
+              <span className="material-symbols-outlined">search</span>
+              <input 
+                className={styles.searchInput}
+                type="text"
+                placeholder="Search Encyclopedia..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -390,204 +405,183 @@ const NewNote = () => {
                 }}
                 onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                className={styles.searchInput}
               />
-              {isSearching && <span className={`material-symbols-outlined ${styles.spinner}`}>progress_activity</span>}
-              {!isSearching && hasSpirit && (
-                <span 
-                  className={`material-symbols-outlined ${styles.clearIcon}`}
-                  onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      name: '', distillery: '', abv: '', volume: '',
-                      categoryId: '', locationId: '', categoryHierarchy: [], locationHierarchy: [],
-                      spirit_id: '', peat: 0, floral: 0, fruity: 0, woody: 0, spicy: 0, sweet: 0
-                    }));
-                    setImagePreview(null);
-                    setSearchQuery('');
-                  }}
-                >close</span>
+              
+              {showSearchDropdown && searchResults.length > 0 && (
+                <div className={styles.searchDropdown}>
+                  {searchResults.map(spirit => (
+                    <div key={spirit.id} className={styles.searchResultItem} onMouseDown={() => handleSelectSpirit(spirit)}>
+                      <div className={styles.resultInfo}>
+                        <div className={styles.resultName}>{spirit.name}</div>
+                        <div className={styles.resultMeta}>
+                          {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
+                        </div>
+                      </div>
+                      <span className="material-symbols-outlined">add_circle</span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-            
-            {showSearchDropdown && searchResults.length > 0 && (
-              <ul className={styles.searchResults}>
-                {searchResults.map(spirit => (
-                  <li key={spirit.id} onMouseDown={() => handleSelectSpirit(spirit)}>
-                    <div className={styles.resultInfo}>
-                      <span className={styles.resultName}>{spirit.name}</span>
-                      <span className={styles.resultMeta}>
-                        {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
-                      </span>
-                    </div>
-                    <span className="material-symbols-outlined">add_circle</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+          )}
+        </div>
+
+        {/* Right Column: Info & Flavor */}
+        <div className={styles.rightCol}>
+          {/* Spirit Info Fields */}
+          <div className={styles.infoFields}>
+            <div className={styles.infoFieldRow}>
+              <span className={styles.fieldLabel}>Spirit Name</span>
+              <span className={styles.fieldLine}></span>
+              <span className={`${styles.fieldValue} ${!formData.name ? styles.empty : ''}`}>
+                {formData.name || "Select Spirit"}
+              </span>
+            </div>
+            <div className={styles.infoFieldRow}>
+              <span className={styles.fieldLabel}>Category</span>
+              <span className={styles.fieldLine}></span>
+              <span className={`${styles.fieldValue} ${formData.categoryHierarchy.length === 0 && !formData.category ? styles.empty : ''}`}>
+                {formData.categoryHierarchy.length > 0 
+                  ? formData.categoryHierarchy.join(' > ') 
+                  : (formData.category || "Select Spirit")}
+              </span>
+            </div>
+            <div className={styles.infoFieldRow}>
+              <span className={styles.fieldLabel}>Origin</span>
+              <span className={styles.fieldLine}></span>
+              <span className={`${styles.fieldValue} ${formData.locationHierarchy.length === 0 ? styles.empty : ''}`}>
+                {formData.locationHierarchy.length > 0 
+                  ? formData.locationHierarchy.join(' > ') 
+                  : "Select Spirit"}
+              </span>
+            </div>
+            <div className={styles.infoFieldRow}>
+              <span className={styles.fieldLabel}>Distillery</span>
+              <span className={styles.fieldLine}></span>
+              <span className={`${styles.fieldValue} ${!formData.distillery ? styles.empty : ''}`}>
+                {formData.distillery || "Select Spirit"}
+              </span>
+            </div>
           </div>
-        )}
 
-        {/* Basic Info */}
-        <section className={styles.formSection}>
-          <h2>Basic Details</h2>
-
-          {/* 선택된 주류 정보: 검색 전에는 숨김, 검색 후 또는 수정 시에만 표시 */}
-          {(hasSpirit || isEdit) && (
-            <div className={styles.formInside}>
-              <div className={styles.inputGroup}>
-                <label>Liquor Name</label>
-                <input 
-                  name="name" value={formData.name} onChange={handleChange} 
-                  placeholder="검색하여 주류를 선택하세요" 
-                  className={`${styles.textInput} ${styles.large} ${hasSpirit ? styles.readOnly : ''}`} 
-                  required 
-                  readOnly={hasSpirit || !isEdit}
-                />
-              </div>
-
-              {/* Hierarchical Info */}
-              {(formData.categoryHierarchy.length > 0 || formData.locationHierarchy.length > 0) && (
-                <div className={styles.hierarchyInfo}>
-                  {formData.categoryHierarchy.length > 0 && (
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Category:</span>
-                      <span className={styles.infoValue}>{formData.categoryHierarchy.join(' > ')}</span>
-                    </div>
-                  )}
-                  {formData.locationHierarchy.length > 0 && (
-                    <div className={styles.infoRow}>
-                      <span className={styles.infoLabel}>Origin:</span>
-                      <span className={styles.infoValue}>{formData.locationHierarchy.join(' > ')}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className={styles.gridInputs}>
-                <div className={styles.inputGroup}>
-                  <label>Distillery / Brand</label>
-                  <input 
-                    name="distillery" value={formData.distillery} onChange={handleChange} 
-                    placeholder="Distillery" 
-                    className={`${styles.textInput} ${hasSpirit ? styles.readOnly : ''}`} 
-                    readOnly={hasSpirit || !isEdit}
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>ABV (%)</label>
+            <div className={styles.specsGrid}>
+              <div className={styles.specBox}>
+                <p className={styles.specLabel}>ABV</p>
+                <div className={styles.specValueRow}>
                   <input 
                     type="number" step="0.1"
-                    name="abv" value={formData.abv} onChange={handleChange} 
-                    placeholder="0.0" 
-                    className={`${styles.textInput} ${hasSpirit ? styles.readOnly : ''}`} 
-                    readOnly={hasSpirit || !isEdit}
+                    name="abv" value={formData.abv} onChange={handleChange}
+                    className={`${styles.specInput} ${(hasSpirit && !isEdit) ? styles.readOnly : ''}`}
+                    placeholder="0.0"
+                    readOnly={hasSpirit && !isEdit}
                   />
+                  <span>%</span>
                 </div>
-                <div className={styles.inputGroup}>
-                  <label>Volume (ml)</label>
+              </div>
+              <div className={styles.specBox}>
+                <p className={styles.specLabel}>Volume</p>
+                <div className={styles.specValueRow}>
                   <input 
                     type="number"
-                    name="volume" value={formData.volume} onChange={handleChange} 
-                    placeholder="0" 
-                    className={`${styles.textInput} ${hasSpirit ? styles.readOnly : ''}`} 
-                    readOnly={hasSpirit || !isEdit}
+                    name="volume" value={formData.volume} onChange={handleChange}
+                    className={`${styles.specInput} ${(hasSpirit && !isEdit) ? styles.readOnly : ''}`}
+                    placeholder="0"
+                    readOnly={hasSpirit && !isEdit}
                   />
+                  <span>ml</span>
                 </div>
               </div>
             </div>
-          )}
-        </section>
 
-        {/* Overall Rating */}
-        <section className={`${styles.formSection} ${styles.centered}`}>
-          <h2>Overall Rating</h2>
-          <RatingPicker value={formData.rating} onChange={handleRatingChange} />
-        </section>
-
-        {/* Radar Chart + Flavor Sliders */}
-        <section className={styles.formSection}>
-          <h2>Flavor Profile</h2>
-          
-          {/* Radar Chart Area */}
-          <div className={styles.radarContainer}>
-            <div className={styles.radarGrid}></div>
-            <div className={`${styles.radarGrid} ${styles.scale75}`}></div>
-            <div className={`${styles.radarGrid} ${styles.scale50}`}></div>
-            <div className={`${styles.radarGrid} ${styles.scale25}`}></div>
-            
-            <div className={styles.chartWrapper}>
-              <FlavorRadarChart data={chartData} color="#ffc63e" height={240} />
-            </div>
-          </div>
-
-          {/* Sliders List (Improved UX) */}
-          <div className={styles.flavorControlList}>
-            {flavorFields.map(field => (
-              <div key={field.name} className={styles.flavorControlItem}>
-                <div className={styles.flavorHeader}>
-                  <label>{field.label}</label>
-                  <span className={styles.flavorValue}>{formData[field.name]}</span>
+            {/* Flavor Profile */}
+            <div className={styles.flavorCard}>
+              <div className={styles.flavorCardHeader}>
+                <div>
+                  <h3 className={styles.flavorTitle}>Flavor Profile</h3>
+                  <p className={styles.flavorSubtitle}>Adjust axes to define the profile</p>
                 </div>
-                <div className={styles.controlRow}>
-                  <button 
-                    type="button"
-                    className={styles.stepBtn}
-                    onClick={() => handleFlavorChange(field.name, Math.max(0, formData[field.name] - 1))}
-                  >
-                    <span className="material-symbols-outlined">remove</span>
-                  </button>
-                  <div className={styles.sliderWrapper}>
-                    <input 
-                      type="range" min="0" max="10" step="0.5" 
-                      value={formData[field.name]} 
-                      onChange={(e) => handleFlavorChange(field.name, e.target.value)}
-                      className={styles.horizontalSlider}
-                    />
-                    <div 
-                      className={styles.sliderProgress} 
-                      style={{ width: `${(formData[field.name] / 10) * 100}%` }}
-                    />
-                  </div>
-                  <button 
-                    type="button"
-                    className={styles.stepBtn}
-                    onClick={() => handleFlavorChange(field.name, Math.min(10, formData[field.name] + 1))}
-                  >
-                    <span className="material-symbols-outlined">add</span>
-                  </button>
+                <span className="material-symbols-outlined opacity-40">insights</span>
+              </div>
+
+              <div className={styles.flavorVisualSection}>
+                {/* Custom Radar Visual (Using polygon based on sliders) */}
+                <div className={styles.radarVisual}>
+                  <div className={`${styles.hexagonGrid} ${styles.scale100}`}></div>
+                  <div className={`${styles.hexagonGrid} ${styles.scale75}`}></div>
+                  <div className={`${styles.hexagonGrid} ${styles.scale50}`}></div>
+                  
+                  {/* Radar Polygon */}
+                  <div 
+                    className={styles.radarPolygon}
+                    style={{
+                      clipPath: `polygon(
+                        50% ${50 - formData.peat * 5}%, 
+                        ${50 + formData.floral * 4.33}% ${50 - formData.floral * 2.5}%, 
+                        ${50 + formData.fruity * 4.33}% ${50 + formData.fruity * 2.5}%, 
+                        50% ${50 + formData.woody * 5}%, 
+                        ${50 - formData.spicy * 4.33}% ${50 + formData.spicy * 2.5}%, 
+                        ${50 - formData.sweet * 4.33}% ${50 - formData.sweet * 2.5}%
+                      )`
+                    }}
+                  ></div>
+
+                  <span className={`${styles.axisLabel} ${styles.top}`}>Peat</span>
+                  <span className={`${styles.axisLabel} ${styles.topRight}`}>Floral</span>
+                  <span className={`${styles.axisLabel} ${styles.bottomRight}`}>Fruity</span>
+                  <span className={`${styles.axisLabel} ${styles.bottom}`}>Woody</span>
+                  <span className={`${styles.axisLabel} ${styles.bottomLeft}`}>Spicy</span>
+                  <span className={`${styles.axisLabel} ${styles.topLeft}`}>Sweet</span>
+                </div>
+
+                {/* Sliders Grid */}
+                <div className={styles.slidersGrid}>
+                  {flavorFields.map(field => (
+                    <div key={field.name} className={styles.sliderGroup}>
+                      <div className={styles.sliderHeader}>
+                        <label>{field.label}</label>
+                        <span>{formData[field.name]?.toFixed(1)}</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="10" step="0.5"
+                        className={styles.rangeInput}
+                        value={formData[field.name]}
+                        onChange={(e) => handleFlavorChange(field.name, e.target.value)}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Tasting Notes */}
+            <div className={styles.notesCard}>
+              <div className={styles.notesHeader}>
+                <label className={styles.notesLabel}>Tasting Experience & Notes</label>
+              </div>
+              <textarea 
+                className={styles.notesTextarea}
+                name="comment"
+                value={formData.comment}
+                onChange={handleChange}
+                placeholder="Describe the nose, palate, and finish..."
+              />
+            </div>
           </div>
-        </section>
+        </div>
+      </main>
 
-        {/* Text Memo */}
-        <section className={styles.formSection}>
-          <h2>Memories & Notes</h2>
-          <textarea 
-            name="comment" value={formData.comment} onChange={handleChange} rows={5}
-            placeholder="맛의 밸런스, 타격감, 피니시 등 자유롭게 기록하세요." 
-            className={styles.textareaInput}
-          />
-        </section>
-      </form>
-
-      {/* Sticky Save Button */}
-      <footer className={styles.stickyFooter}>
+      {/* Fixed Bottom Button */}
+      <div className={styles.fixedFooter}>
         <button 
-          onClick={handleSubmit}
           className={styles.saveButton}
+          onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? (
-            <span className="material-symbols-outlined animate-spin">refresh</span>
-          ) : (
-            <span className={`material-symbols-outlined ${styles.icon}`}>save</span>
-          )}
-          {loading ? '저장 중...' : (isEdit ? '수정사항 저장하기' : '테이스팅 노트 저장하기')}
+          <span className={styles.saveBtnText}>
+            {loading ? 'Saving...' : (isEdit ? 'Update Tasting Note' : 'Save Note to Collection')}
+          </span>
         </button>
-      </footer>
+      </div>
     </div>
   );
 };

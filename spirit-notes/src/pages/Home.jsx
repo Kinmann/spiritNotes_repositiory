@@ -161,7 +161,7 @@ const Home = () => {
             {recentNotes.map((note) => (
               <div key={note.id} className={styles.noteCardWrapper}>
                 {/* Note cards will use the new stat-card style via global components or specific styles */}
-                <TastingNoteCard note={note} variant="stat" />
+                <TastingNoteCard note={note} variant="collection" />
               </div>
             ))}
           </div>

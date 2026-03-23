@@ -47,6 +47,9 @@ const AppContent = () => {
     );
   }
 
+  const isNewNote = location.pathname === '/notes/new';
+  const isEditNote = location.pathname.includes('/notes/') && location.pathname.endsWith('/edit');
+
   return (
     <div className={styles.appContainer}>
       {user && <Navbar />}
@@ -66,7 +69,7 @@ const AppContent = () => {
           </Routes>
         </main>
       </div>
-      {user && !isSpiritDetail && <BottomNav />}
+      {user && !isSpiritDetail && !isNewNote && !isEditNote && <BottomNav />}
     </div>
   );
 };
