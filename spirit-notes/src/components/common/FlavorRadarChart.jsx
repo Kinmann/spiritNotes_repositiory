@@ -19,9 +19,9 @@ import {
  */
 const FlavorRadarChart = ({ data, color = "#e9c176", height = 300 }) => {
   return (
-    <div style={{ height, width: '100%' }}>
+    <div style={{ height: height || 300, width: '100%', position: 'relative' }}>
       {data && data.length > 0 ? (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minHeight={height || 300}>
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
             <PolarGrid stroke="#4e4639" strokeOpacity={0.4} />
             <PolarAngleAxis 

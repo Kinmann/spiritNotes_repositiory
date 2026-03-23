@@ -1,114 +1,163 @@
 @use "@/styles/variables" as *;
 
 .catalogCard {
-  background: var(--surface-container-low);
-  border-radius: 4px;
-  padding: 8px;
-  border: 1px solid var(--outline-variant);
+  background-color: $surface-container;
+  border: 1px solid rgba(78, 70, 57, 0.3);
+  border-radius: 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.5s ease;
 
   &:hover {
-    border-color: rgba($primary, 0.3);
-    transform: translateY(-2px);
+    transform: translateY(-8px);
+    border-color: rgba($primary, 0.2);
     
     .imageWrapper img {
+      filter: grayscale(0%);
       transform: scale(1.05);
     }
   }
 
   .matchBadge {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 10;
-    background: var(--secondary);
-    color: var(--on-secondary);
+    top: 32px;
+    left: 32px;
+    z-index: 20;
+    background: $primary;
+    color: $on-primary;
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: 999px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
   }
 
   .quickAdd {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 10;
-    width: 32px;
-    height: 32px;
+    top: 32px;
+    right: 32px;
+    z-index: 20;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 
     &:hover {
-      background: var(--primary);
-      color: var(--on-primary);
-      border-color: var(--primary);
-      transform: scale(1.1);
+      background: $primary;
+      color: $on-primary;
+      border-color: $primary;
+      transform: scale(1.1) rotate(90deg);
     }
 
     span {
-      font-size: 20px;
+      font-size: 22px;
+      font-weight: 600;
     }
   }
 
   .imageWrapper {
-    aspect-ratio: 1 / 1;
-    border-radius: 8px;
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: 12px;
     overflow: hidden;
-    background: var(--surface-container-high);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: $surface-container-highest;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.5s ease;
+      filter: grayscale(100%);
+      transition: all 0.7s ease;
+    }
+
+    .gradientOverlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba($background, 0.6) 0%, transparent 100%);
+      pointer-events: none;
     }
 
     .placeholderIcon {
-      font-size: 40px;
+      font-size: 48px;
       color: rgba($on-surface-variant, 0.2);
     }
   }
 
   .info {
-    padding: 0 4px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 
-    h4 {
-      font-family: var(--font-heading);
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--on-surface);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin: 0;
+    .titles {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .distillery {
+        font-size: 9px;
+        font-weight: 800;
+        color: $primary;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+      }
+
+      h4 {
+        font-family: $font-heading;
+        font-size: 20px;
+        font-weight: 700;
+        color: $on-surface;
+        line-height: 1.2;
+        margin: 0;
+      }
     }
 
-    p {
-      font-size: 11px;
-      color: var(--on-surface-variant);
-      margin: 2px 0 0;
+    .specs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .specRow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+
+        .label {
+          color: $primary;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          span {
+            font-size: 14px;
+          }
+        }
+
+        .value {
+          color: $on-surface-variant;
+          text-align: right;
+          flex: 1;
+          margin-left: 12px;
+          word-break: break-all;
+        }
+      }
     }
   }
 }
@@ -123,7 +172,7 @@
   align-items: stretch;
 
   .heroImageWrapper {
-    flex: 8;
+    flex: 1;
     position: relative;
     border-radius: 12px;
     overflow: hidden;
@@ -149,7 +198,7 @@
   }
 
   .heroInfo {
-    flex: 1;
+    flex: 1.5;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -207,6 +256,18 @@
     span { font-size: 24px; font-weight: 600; }
   }
 
+  .recommendationReason {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--on-surface-variant);
+    font-style: italic;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: rgba($primary, 0.05);
+    border-left: 2px solid var(--primary);
+    border-radius: 0 4px 4px 0;
+  }
+
   .specList {
     display: flex;
     flex-direction: column;
@@ -236,6 +297,9 @@
       font-size: 0.75rem;
       color: var(--on-surface);
       font-weight: 500;
+      text-align: right;
+      flex: 1;
+      word-break: break-all;
     }
   }
 

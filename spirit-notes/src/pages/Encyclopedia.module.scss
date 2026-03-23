@@ -1,17 +1,18 @@
 @use "@/styles/variables" as *;
 
 .encyclopediaPage {
-  max-width: 672px;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-top: 80px;
-  padding-bottom: 128px;
+  padding-top: 1rem;
+  padding-bottom: 3rem;
   padding-left: 24px;
   padding-right: 24px;
   display: flex;
   flex-direction: column;
   gap: 40px;
   animation: fadeIn 0.7s ease-out;
+  min-height: 100vh;
 }
 
 @keyframes fadeIn {
@@ -29,13 +30,13 @@
 
   .loadingIcon {
     font-size: 48px;
-    color: var(--primary);
+    color: $primary;
     animation: spin 2s linear infinite;
   }
 
   .loadingText {
-    color: var(--on-surface-variant);
-    font-family: var(--font-sans);
+    color: $on-surface-variant;
+    font-family: $font-sans;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-size: 12px;
@@ -47,44 +48,27 @@
   to { transform: rotate(360deg); }
 }
 
-.header {
+.heroSection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 
-  .headerTitleRow {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  h1 {
+    font-family: $font-heading;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: $on-surface;
+    margin: 0;
 
-    .iconContainer {
-      width: 48px;
-      height: 48px;
-      border-radius: 16px;
-      background: rgba($primary, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .icon {
-        color: var(--primary);
-        font-size: 30px;
-      }
+    span {
+      color: $primary;
     }
 
-    h1 {
-      font-family: var(--font-heading);
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--on-surface);
+    @media (min-width: 768px) {
+      font-size: 4.5rem;
     }
-  }
-
-  .description {
-    color: var(--on-surface-variant);
-    font-family: var(--font-sans);
-    font-style: italic;
-    opacity: 0.8;
   }
 }
 
@@ -93,28 +77,27 @@
   flex-direction: column;
   gap: 24px;
 
-  .searchBar {
+  .searchBarWrapper {
     position: relative;
+    width: 100%;
+    transition: all 0.3s ease;
 
     .searchIcon {
       position: absolute;
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--primary);
+      color: rgba($on-surface-variant, 0.5);
     }
 
     .searchInput {
       width: 100%;
-      background: rgba($surface-container-high, 0.4);
-      border: none;
-      border-bottom: 2px solid rgba($outline-variant, 0.3);
-      padding: 16px 16px 16px 48px;
-      border-radius: 12px 12px 0 0;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: var(--on-surface);
-      font-family: var(--font-sans);
+      background: $surface-container;
+      border: 1px solid rgba($outline-variant, 0.3);
+      padding: 14px 16px 14px 48px;
+      border-radius: 8px;
+      color: $on-surface;
+      font-family: $font-sans;
       transition: all 0.3s ease;
 
       &::placeholder {
@@ -123,39 +106,52 @@
 
       &:focus {
         outline: none;
-        border-color: var(--primary);
+        border-color: $primary;
+        box-shadow: 0 0 0 1px $primary;
       }
     }
   }
 
   .categoryList {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    width: 100%;
+
+    /* Hide scrollbar but keep functionality */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     .categoryButton {
-      padding: 8px 20px;
-      border-radius: 9999px;
-      font-size: 10px;
-      font-family: var(--font-sans);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      border: 1px solid rgba($outline-variant, 0.2);
-      background: var(--surface-container-low);
-      color: var(--on-surface-variant);
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: $font-sans;
+      font-weight: 600;
+      white-space: nowrap;
+      border: 1px solid rgba($outline-variant, 0.3);
+      background: $surface-container;
+      color: $on-surface;
       transition: all 0.3s ease;
       cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+      &:active {
+        transform: scale(0.95);
+      }
 
       &.active {
-        background: var(--primary);
-        color: var(--on-primary);
-        border-color: var(--primary);
-        box-shadow: 0 10px 15px -3px rgba($primary, 0.2);
+        background: $primary;
+        color: $on-primary;
+        border-color: $primary;
       }
 
       &:not(.active):hover {
-        border-color: rgba($primary, 0.5);
+        background: $surface-container-high;
       }
     }
   }
@@ -163,8 +159,16 @@
 
 .gridSection {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 
   .noResults {
     grid-column: 1 / -1;
@@ -173,9 +177,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: rgba(var(--surface-container-high-rgb), 0.4);
+    background: $surface-container;
     border-radius: 24px;
     border: 1px solid rgba($outline-variant, 0.1);
 
@@ -185,15 +187,15 @@
     }
 
     .noText {
-      color: var(--on-surface-variant);
+      color: $on-surface-variant;
       font-style: italic;
-      font-family: var(--font-sans);
+      font-family: $font-sans;
     }
   }
 }
 
 .discoveryCta {
-  background: linear-gradient(135deg, #f2ca50 0%, #d4a72c 100%);
+  @include amber-gradient;
   padding: 32px;
   border-radius: 24px;
   display: flex;
@@ -202,7 +204,6 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   overflow: hidden;
-  cursor: default;
 
   .bgIcon {
     position: absolute;
@@ -230,7 +231,7 @@
 
     .ctaTitle {
       font-size: 24px;
-      font-family: var(--font-heading);
+      font-family: $font-heading;
       font-weight: 700;
       color: #2d1b00;
       display: flex;
@@ -245,7 +246,7 @@
     .ctaText {
       font-size: 14px;
       color: #5c3c00;
-      font-family: var(--font-sans);
+      font-family: $font-sans;
       font-weight: 500;
       max-width: 320px;
     }
@@ -255,7 +256,7 @@
     position: relative;
     z-index: 10;
     background: #2d1b00;
-    color: #f2ca50;
+    color: $primary;
     padding: 12px 24px;
     border-radius: 12px;
     font-weight: 700;

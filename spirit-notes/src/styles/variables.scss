@@ -1,24 +1,27 @@
 // Colors
 $background: #131313;
-$foreground: #e5e2e1; // Noto Serif on_surface
+$foreground: #e5e2e1; 
 $surface: #131313;
-$surface-dim: #0e0e0e;
+$surface-dim: #131313;
 $on-surface: #e5e2e1;
 $surface-variant: #353534;
-$on-surface-variant: #d7c2c0;
+$on-surface-variant: #d1c5b4;
 $surface-container-lowest: #0e0e0e;
 $surface-container-low: #1c1b1b;
 $surface-container: #201f1f;
 $surface-container-high: #2a2a2a;
 $surface-container-highest: #353534;
 
-$primary: #e9c176; // Stitch Gold
-$on-primary: #3c2f00;
-$secondary: #76302e; // Stitch Burgundy
-$on-secondary: #fdb4b1;
+$primary: #e9c176; 
+$on-primary: #412d00;
+$primary-container: #c5a059;
+$on-primary-container: #4e3700;
 
-$outline: rgba(159, 140, 139, 0.4);
-$outline-variant: rgba(78, 70, 57, 0.3); // Stitch outline effect
+$secondary: #ffb3ae;
+$on-secondary: #5a1b1a;
+
+$outline: #9a8f80;
+$outline-variant: rgba(78, 70, 57, 0.3);
 $error: #ffb4ab;
 
 // Radius

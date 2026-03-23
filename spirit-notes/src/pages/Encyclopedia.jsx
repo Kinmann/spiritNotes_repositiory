@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SpiritCatalogCard from '@/components/common/SpiritCatalogCard';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { getAllSpirits } from '@/api/spirits';
 import styles from './Encyclopedia.module.scss';
 
 const Encyclopedia = () => {
@@ -15,9 +14,10 @@ const Encyclopedia = () => {
   useEffect(() => {
     const fetchSpirits = async () => {
       try {
-        const q = query(collection(db, 'spirits'), orderBy('name'));
-        const querySnapshot = await getDocs(q);
-        setSpirits(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const data = await getAllSpirits();
+        if (data.success) {
+          setSpirits(data.spirits);
+        }
       } catch (error) {
         console.error('Error fetching spirits:', error);
       } finally {
@@ -27,12 +27,35 @@ const Encyclopedia = () => {
     fetchSpirits();
   }, []);
 
-  const categories = ['All', 'Whisky', 'Gin', 'Rum', 'Tequila', 'Cognac'];
+  const categories = ['All', 'Whiskey', 'Gin', 'Rum', 'Tequila', 'Vodka'];
+  const categoryMap = {
+    'Whiskey': '위스키',
+    'Gin': '진',
+    'Rum': '럼',
+    'Tequila': '데킬라',
+    'Vodka': '보드카'
+  };
 
   const filteredSpirits = spirits.filter(spirit => {
-    const matchesSearch = spirit.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (spirit.brand && spirit.brand.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = activeCategory === 'All' || spirit.category?.includes(activeCategory);
+    const searchLower = searchQuery.toLowerCase();
+    
+    // Expanded search scope: name, distillery, brand, category (hierarchical), origin (hierarchical)
+    const matchesSearch = 
+      spirit.name.toLowerCase().includes(searchLower) ||
+      (spirit.brand && spirit.brand.toLowerCase().includes(searchLower)) ||
+      (spirit.distillery && spirit.distillery.toLowerCase().includes(searchLower)) ||
+      (spirit.category && spirit.category.toLowerCase().includes(searchLower)) ||
+      (spirit.origin && spirit.origin.toLowerCase().includes(searchLower));
+    
+    let matchesCategory = activeCategory === 'All';
+    if (!matchesCategory && spirit.category) {
+      // User wants to match the first level of the category hierarchy
+      const firstLevel = spirit.category.split(' > ')[0];
+      const targetCategory = categoryMap[activeCategory];
+      
+      matchesCategory = firstLevel === targetCategory;
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -47,45 +70,39 @@ const Encyclopedia = () => {
 
   return (
     <div className={styles.encyclopediaPage}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.headerTitleRow}>
-          <div className={styles.iconContainer}>
-            <span className={`material-symbols-outlined ${styles.icon}`}>menu_book</span>
+      {/* Page Title & Search */}
+      <section className={styles.heroSection}>
+        <h1>
+          Spirit <span>Encyclopedia</span>
+        </h1>
+        
+        <div className={styles.searchSection}>
+          <div className={styles.searchBarWrapper}>
+            <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+            <input 
+              className={styles.searchInput}
+              placeholder="Search brands, categories..." 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <h1>The Archives</h1>
-        </div>
-        <p className={styles.description}>
-          Explore the world's finest spirits and discover your next masterwork.
-        </p>
-      </header>
-
-      {/* Search & Categories */}
-      <section className={styles.searchSection}>
-        <div className={styles.searchBar}>
-          <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
-          <input 
-            placeholder="Search by name, distillery, or region..." 
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className={styles.categoryList}>
-          {categories.map((cat) => (
-            <button 
-              key={cat} 
-              onClick={() => setActiveCategory(cat)}
-              className={`${styles.categoryButton} ${activeCategory === cat ? styles.active : ''}`}
-            >
-              {cat}
-            </button>
-          ))}
+          
+          <div className={styles.categoryList}>
+            {categories.map((cat) => (
+              <button 
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`${styles.categoryButton} ${activeCategory === cat ? styles.active : ''}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Grid */}
+      {/* Spirit List */}
       <section className={styles.gridSection}>
         {filteredSpirits.length > 0 ? (
           filteredSpirits.map((spirit) => (

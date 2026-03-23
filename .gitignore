@@ -5,4 +5,5 @@ node_modules/
 
 # Ignore service accounts and temporary payloads
 *firebase-adminsdk*.json
+service-account.json
 github_payload.json

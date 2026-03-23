@@ -36,10 +36,10 @@ if (fs.existsSync(serviceAccountPath)) {
   console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is missing and no local service-account.json found.');
 }
 
-const db = admin.firestore?.() || null;
+const db = admin.apps.length > 0 ? admin.firestore() : null;
 
 // Gemini AI 초기화
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 app.use(cors());
 app.use(express.json());
@@ -109,10 +109,72 @@ const calculateCosineSimilarity = (vecA, vecB) => {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 };
 
+// --- Helper Functions for Data Enrichment ---
+
+const buildHierarchy = (id, dataMap) => {
+  let currentId = id;
+  let path = [];
+  while (currentId && dataMap[currentId]) {
+    path.unshift(dataMap[currentId].name);
+    currentId = dataMap[currentId].parentId;
+  }
+  return path.join(' > ');
+};
+
+const getEnrichmentMaps = async (db) => {
+  const categoriesMap = {};
+  const locationsMap = {};
+  
+  if (db) {
+    const catsSnapshot = await db.collection('categories').get();
+    const catsDocData = {};
+    catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
+    catsSnapshot.forEach(doc => {
+      categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
+    });
+
+    const locsSnapshot = await db.collection('locations').get();
+    const locsDocData = {};
+    locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
+    locsSnapshot.forEach(doc => {
+      locationsMap[doc.id] = buildHierarchy(doc.id, locsDocData);
+    });
+  }
+  
+  return { categoriesMap, locationsMap };
+};
+
+const enrichSpirit = (s, categoriesMap, locationsMap) => ({
+  ...s,
+  category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
+  origin: (s.locationId && locationsMap[s.locationId]) || s.origin || '스코틀랜드 > 스페이사이드'
+});
+
 // --- Endpoints ---
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Spirit Notes Backend is running' });
+});
+
+/**
+ * 모든 주류 목록 조회 API (Enriched)
+ */
+app.get('/api/spirits', async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const allSpiritsSnapshot = await db.collection('spirits').get();
+    
+    const spirits = allSpiritsSnapshot.docs.map(doc => 
+      enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap)
+    );
+
+    res.json({ success: true, spirits });
+  } catch (error) {
+    console.error('Error fetching spirits:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -150,26 +212,33 @@ app.post('/api/recommendations/:userId', async (req, res) => {
     const { userId } = req.params;
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
 
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data();
-    if (!userData || !userData.flavorDNA) return res.status(400).json({ error: 'User flavor DNA not found' });
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    let recs = [];
 
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+    let userDNA = null;
+    let tastedSpiritIds = new Set();
 
-    if (notesSnapshot.size < 3) return res.status(400).json({ error: 'At least 3 tasting notes are required.', code: 'INSUFFICIENT_DATA' });
-
-    const tastedSpiritIds = new Set();
-    notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
+    if (userId && userId !== 'guest') {
+      const userDoc = await db.collection('users').doc(userId).get();
+      const userData = userDoc.data();
+      if (userData && userData.flavorDNA) {
+        userDNA = userData.flavorDNA;
+        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+        notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
+      }
+    }
 
     const allSpiritsSnapshot = await db.collection('spirits').get();
     const candidates = [];
     allSpiritsSnapshot.forEach(doc => {
-      if (!tastedSpiritIds.has(doc.id)) {
-        const spiritData = doc.data();
-        if (spiritData.flavor_axes) {
-          const similarity = calculateCosineSimilarity(userData.flavorDNA, spiritData.flavor_axes);
-          candidates.push({ ...spiritData, id: doc.id, similarity });
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+      if (userDNA && spiritData.flavor_axes) {
+        if (!tastedSpiritIds.has(doc.id)) {
+          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
+          candidates.push({ ...spiritData, similarity });
         }
+      } else {
+        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
       }
     });
 
@@ -177,31 +246,48 @@ app.post('/api/recommendations/:userId', async (req, res) => {
     const top3 = candidates.slice(0, 3);
     if (top3.length === 0) return res.json({ success: true, recommendations: [] });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const { flavorDNA } = userData;
-    const candidatesText = top3.map(c => `- ${c.name} (${c.category}, Match: ${(c.similarity * 100).toFixed(1)}%)`).join('\n');
-    const prompt = `User DNA: ${JSON.stringify(flavorDNA)}\nCandidates:\n${candidatesText}\nReason why they match in 1-2 sentences each. Output valid JSON array: [{ "id": "spiritId", "name": "Name", "reason": "Reason" }]`;
-
-    let recs = [];
-    try {
-      const result = await model.generateContent(prompt).catch(e => { throw e; });
-      if (result && result.response) {
-        const text = result.response.text();
-        const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-        recs = JSON.parse(jsonStr);
-      } else {
-        throw new Error('No response from AI');
-      }
-    } catch (aiError) {
-      console.error('Inner AI catch:', aiError.message);
+    if (!genAI) {
+      console.warn('Gemini AI not initialized. Falling back to simple matching.');
       recs = top3.map(c => ({
         id: c.id,
         name: c.name,
         reason: `${c.category || '취향'} 카테고리에서 당신의 취향과 ${(c.similarity * 100).toFixed(0)}% 일치하는 가장 가까운 맛의 술입니다.`
       }));
+    } else {
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
+      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 sentences. Output valid JSON array: [{ "id": "spiritId", "name": "Name", "reason": "Reason" }]`;
+
+      try {
+        const result = await model.generateContent(prompt).catch(e => { throw e; });
+        if (result && result.response) {
+          const text = result.response.text();
+          const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+          recs = JSON.parse(jsonStr);
+        } else {
+          throw new Error('No response from AI');
+        }
+      } catch (aiError) {
+        console.error('Inner AI catch:', aiError.message);
+        recs = top3.map(c => ({
+          id: c.id,
+          name: c.name,
+          reason: `${c.category || '취향'} 카테고리에서 당신의 취향과 ${(c.similarity * 100).toFixed(0)}% 일치하는 가장 가까운 맛의 술입니다.`
+        }));
+      }
     }
 
-    recs = recs.map((r, i) => ({ ...top3[i], ...r, matchRate: Math.round(top3[i].similarity * 100) }));
+    recs = top3.map((spirit, i) => {
+      const aiRec = Array.isArray(recs) ? recs.find(r => r.id === spirit.id) || recs[i] : {};
+      const enriched = { 
+        ...spirit, 
+        reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
+        matchRate: Math.round(spirit.similarity * 100) 
+      };
+      return enriched;
+    });
+    
     res.json({ success: true, recommendations: recs });
   } catch (error) {
     console.error('Error generating recommendations:', error);
@@ -215,34 +301,65 @@ app.post('/api/recommendations/:userId', async (req, res) => {
 app.post('/api/persona/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+    if (!db) {
+      console.warn('Database not initialized for persona. Returning default persona.');
+      return res.json({ 
+        success: true, 
+        persona: {
+          title: "섬세한 미식가",
+          description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
+          characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
+          recommendationFocus: ["복합미", "질감", "피니시"]
+        }
+      });
+    }
 
     const userDoc = await db.collection('users').doc(userId).get();
     const userData = userDoc.data();
-    if (!userData || !userData.flavorDNA) return res.status(400).json({ error: 'User flavor DNA not found' });
+    if (!userData || !userData.flavorDNA) {
+      console.warn('User flavor DNA not found for persona. Returning default.');
+      return res.json({ 
+        success: true, 
+        persona: {
+          title: "섬세한 미식가",
+          description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
+          characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
+          recommendationFocus: ["복합미", "질감", "피니시"]
+        }
+      });
+    }
 
-    const { flavorDNA } = userData;
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `Analyze this Whiskey Flavor DNA: ${JSON.stringify(flavorDNA)}. Create a poetic Taste Persona. Output valid JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }`;
-
-    let persona = {};
-    try {
-      const result = await model.generateContent(prompt).catch(e => { throw e; });
-      if (result && result.response) {
-        const text = result.response.text();
-        const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
-        persona = JSON.parse(jsonStr);
-      } else {
-        throw new Error('No response from AI');
-      }
-    } catch (aiError) {
-      console.error('Inner AI catch (persona):', aiError.message);
+    if (!genAI) {
+      console.warn('Gemini AI not initialized for persona. Using default persona.');
       persona = {
         title: "섬세한 미식가",
         description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
         characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
         recommendationFocus: ["복합미", "질감", "피니시"]
       };
+    } else {
+      const { flavorDNA } = userData;
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const prompt = `Analyze this Whiskey Flavor DNA: ${JSON.stringify(flavorDNA)}. Create a poetic Taste Persona. Output valid JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }`;
+
+      try {
+        const result = await model.generateContent(prompt).catch(e => { throw e; });
+        if (result && result.response) {
+          const text = result.response.text();
+          const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
+          persona = JSON.parse(jsonStr);
+        } else {
+          throw new Error('No response from AI');
+        }
+      } catch (aiError) {
+        console.error('Inner AI catch (persona):', aiError.message);
+        persona = {
+          title: "섬세한 미식가",
+          description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
+          characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
+          recommendationFocus: ["복합미", "질감", "피니시"]
+        };
+      }
     }
 
     res.json({ success: true, persona });

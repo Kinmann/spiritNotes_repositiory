@@ -30,12 +30,12 @@ const Home = () => {
   ];
 
   const fetchDashboardData = async () => {
-    if (!auth.currentUser) return;
-    const uid = auth.currentUser.uid;
+    const uid = auth.currentUser?.uid || 'guest';
     setLoadingRecs(true);
-    setUserName(auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || 'Connoisseur');
+    setUserName(auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Connoisseur');
     
     try {
+      if (uid !== 'guest') {
       const userDoc = await getDoc(doc(db, 'users', uid));
       if (userDoc.exists()) {
         const data = userDoc.data();
@@ -51,25 +51,28 @@ const Home = () => {
           ];
           setFlavorDnaData(mappedData);
         }
+        }
       }
 
-      const notesRef = collection(db, 'users', uid, 'notes');
-      const q = query(notesRef, orderBy('createdAt', 'desc'), limit(6));
-      const notesSnap = await getDocs(q);
-      const fetchedNotes = [];
-      notesSnap.forEach(docSnap => {
-        const d = docSnap.data();
-        fetchedNotes.push({
-          id: docSnap.id,
-          spiritName: d.name,
-          rating: d.rating,
-          date: d.createdAt?.toDate() || new Date(),
-          tags: Object.entries(d.flavor_axes || {}).filter(([,v]) => v > 6).map(([k]) => k),
-          image: d.image || null,
-          ...d
+      if (uid !== 'guest') {
+        const notesRef = collection(db, 'users', uid, 'notes');
+        const q = query(notesRef, orderBy('createdAt', 'desc'), limit(6));
+        const notesSnap = await getDocs(q);
+        const fetchedNotes = [];
+        notesSnap.forEach(docSnap => {
+          const d = docSnap.data();
+          fetchedNotes.push({
+            id: docSnap.id,
+            spiritName: d.name,
+            rating: d.rating,
+            date: d.createdAt?.toDate() || new Date(),
+            tags: Object.entries(d.flavor_axes || {}).filter(([,v]) => v > 6).map(([k]) => k),
+            image: d.image || null,
+            ...d
+          });
         });
-      });
-      setRecentNotes(fetchedNotes);
+        setRecentNotes(fetchedNotes);
+      }
 
       const recs = await getRecommendations(uid);
       setRecommendations(recs.recommendations || []);
@@ -78,7 +81,8 @@ const Home = () => {
         const personaRes = await fetch(`http://localhost:5000/api/persona/${uid}`, { method: 'POST' });
         if (personaRes.ok) {
           const personaData = await personaRes.json();
-          setPersona(personaData);
+          // The backend returns { success: true, persona: { ... } }
+          setPersona(personaData.persona);
         }
       } catch (pErr) {
         console.error('Error fetching persona:', pErr);
@@ -112,9 +116,9 @@ const Home = () => {
           <div className={styles.personaContent}>
             <p className={styles.personaLabel}>Your Taste Persona</p>
             <div className={styles.personaDescription}>
-              <h3>{persona?.title || 'Smoke & Oak Connoisseur'}</h3>
+              <h3>{persona?.title}</h3>
               <p>
-                {persona?.description || 'You favor deep, peaty malts with a hint of seaside brine and toasted spice notes.'}
+                {persona?.description}
               </p>
             </div>
             <Link to="/dna" className={styles.personaLink}>
@@ -137,7 +141,7 @@ const Home = () => {
           </div>
           <SpiritCatalogCard 
             spirit={recommendations[0]} 
-            matchPercent={recommendations[0].matchScore || 98}
+            matchPercent={recommendations[0].matchRate}
             onAdd={(s) => navigate('/notes/new', { state: { spirit: s } })}
             variant="hero"
           />

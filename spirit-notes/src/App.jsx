@@ -12,7 +12,6 @@ import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import useAuthStore from './store/authStore';
-import { Toaster } from '@/components/ui/sonner';
 import styles from './App.module.scss';
 
 function App() {
@@ -67,7 +66,6 @@ function App() {
           </main>
         </div>
         {user && <BottomNav />}
-        <Toaster />
       </div>
     </Router>
   );
