@@ -178,6 +178,29 @@ app.get('/api/spirits', async (req, res) => {
 });
 
 /**
+ * 개별 주류 상세 조회 API (Enriched)
+ */
+app.get('/api/spirits/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    const spiritDoc = await db.collection('spirits').doc(id).get();
+    if (!spiritDoc.exists) {
+      return res.status(404).json({ error: 'Spirit not found' });
+    }
+
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+
+    res.json({ success: true, spirit });
+  } catch (error) {
+    console.error('Error fetching spirit detail:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * Flavor DNA 업데이트 API
  */
 app.post('/api/flavor-dna/:userId', async (req, res) => {

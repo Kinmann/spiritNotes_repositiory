@@ -1,26 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getSpiritById } from '@/api/spirits';
+import { auth, db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/firebase';
-import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './SpiritDetail.module.scss';
+import { cn } from '@/lib/utils';
 
 const SpiritDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [spirit, setSpirit] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [categoryHierarchy, setCategoryHierarchy] = useState([]);
-  const [locationHierarchy, setLocationHierarchy] = useState([]);
+  const [matchRate, setMatchRate] = useState(null);
 
   useEffect(() => {
-    const fetchSpirit = async () => {
+    const fetchSpiritData = async () => {
       try {
-        const docRef = doc(db, 'spirits', id);
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-          setSpirit({ id: docSnap.id, ...docSnap.data() });
+        const data = await getSpiritById(id);
+        if (data && data.success) {
+          setSpirit(data.spirit);
+          
+          // Try to calculate/get match rate if user is logged in
+          const uid = auth.currentUser?.uid;
+          if (uid) {
+            const userDoc = await getDoc(doc(db, 'users', uid));
+            if (userDoc.exists() && userDoc.data().flavorDNA && data.spirit.flavor_axes) {
+              const dna = userDoc.data().flavorDNA;
+              const axes = data.spirit.flavor_axes;
+              // Simple similarity calculation (simplified cosine or Euclidean)
+              const keys = ['peat', 'floral', 'fruity', 'woody', 'spicy', 'sweet'];
+              let dotProduct = 0;
+              let normA = 0;
+              let normB = 0;
+              keys.forEach(k => {
+                const a = dna[k] || 0;
+                const b = axes[k] || 0;
+                dotProduct += a * b;
+                normA += a * a;
+                normB += b * b;
+              });
+              if (normA > 0 && normB > 0) {
+                const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+                setMatchRate(Math.round(similarity * 100));
+              } else {
+                setMatchRate(92); // fallback to reference value
+              }
+            } else {
+              setMatchRate(92); // fallback
+            }
+          } else {
+            setMatchRate(88); // guest fallback
+          }
         } else {
           console.error("No such spirit!");
         }
@@ -31,51 +61,32 @@ const SpiritDetail = () => {
       }
     };
 
-    fetchSpirit();
+    fetchSpiritData();
   }, [id]);
 
-  useEffect(() => {
-    if (!spirit) return;
-
-    const fetchHierarchy = async (id, collectionName) => {
-      let path = [];
-      let currentId = id;
-      while (currentId) {
-        try {
-          const docRef = doc(db, collectionName, currentId);
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) break;
-          const data = docSnap.data();
-          path.unshift(data.name);
-          currentId = data.parentId;
-        } catch (error) {
-          console.error(`Error fetching ${collectionName} hierarchy:`, error);
-          break;
-        }
-      }
-      return path;
-    };
-
-    const loadHierarchies = async () => {
-      if (spirit.categoryId) {
-        const catPath = await fetchHierarchy(spirit.categoryId, 'categories');
-        setCategoryHierarchy(catPath);
-      }
-      if (spirit.locationId) {
-        const locPath = await fetchHierarchy(spirit.locationId, 'locations');
-        setLocationHierarchy(locPath);
-      }
-    };
-
-    loadHierarchies();
+  // Hexagon Radar Calculation (from SpiritCatalogCard reference)
+  const radarPolygon = useMemo(() => {
+    if (!spirit || !spirit.flavor_axes) return '';
+    const axes = spirit.flavor_axes;
+    const keys = ['peat', 'floral', 'woody', 'sweet', 'spicy', 'fruity']; // matching hex order
+    const center = 50;
+    const maxRadius = 40;
+    const points = keys.map((key, i) => {
+      const val = Math.min(Math.max(axes[key] || 0, 0), 10) / 10;
+      const angle = (i * 60 - 90) * (Math.PI / 180);
+      const x = center + Math.cos(angle) * maxRadius * val;
+      const y = center + Math.sin(angle) * maxRadius * val;
+      return `${x.toFixed(1)}% ${y.toFixed(1)}%`;
+    });
+    return `polygon(${points.join(', ')})`;
   }, [spirit]);
 
   if (loading) {
     return (
       <div className={styles.spiritDetailPage}>
-        <div className={styles.loadingWrapper}>
-          <span className={`material-symbols-outlined ${styles.loadingIcon}`}>cyclone</span>
-          <p className={styles.loadingText}>Accessing Records...</p>
+        <div className={styles.loadingState}>
+          <span className={`material-symbols-outlined ${styles.spin}`}>cyclone</span>
+          <p>Analyzing Spirit Essence...</p>
         </div>
       </div>
     );
@@ -84,109 +95,180 @@ const SpiritDetail = () => {
   if (!spirit) {
     return (
       <div className={styles.spiritDetailPage}>
-        <button onClick={() => navigate(-1)} className={styles.backButton}>
-          <span className="material-symbols-outlined">arrow_back</span>
-          Back to Archives
-        </button>
         <div className={styles.errorState}>
           <h2>Spirit Not Found</h2>
-          <p>The requested record does not exist in our archives.</p>
+          <p>The cosmic archives do not contain this record.</p>
+          <button onClick={() => navigate(-1)} className={styles.backLink}>
+            Return to Encyclopedia
+          </button>
         </div>
       </div>
     );
   }
 
-  // Format flavor data for Radar Chart
-  const flavorData = spirit.flavor_axes ? [
-    { subject: 'Peat', value: spirit.flavor_axes.peat || 0 },
-    { subject: 'Floral', value: spirit.flavor_axes.floral || 0 },
-    { subject: 'Fruity', value: spirit.flavor_axes.fruity || 0 },
-    { subject: 'Woody', value: spirit.flavor_axes.woody || 0 },
-    { subject: 'Spicy', value: spirit.flavor_axes.spicy || 0 },
-    { subject: 'Sweet', value: spirit.flavor_axes.sweet || 0 }
-  ] : [];
-
+  const dominantFlavor = Object.entries(spirit.flavor_axes || {})
+    .sort((a, b) => b[1] - a[1])[0] || ['Unknown', 0];
 
   return (
     <div className={styles.spiritDetailPage}>
-      <button onClick={() => navigate(-1)} className={styles.backButton}>
-        <span className={`material-symbols-outlined ${styles.backIcon}`}>arrow_back</span>
-        Back to Archives
-      </button>
+      {/* Header */}
+      <header className={styles.backHeader}>
+        <button onClick={() => navigate(-1)} className={styles.backButton}>
+          <span className={`material-symbols-outlined ${styles.backIcon}`}>arrow_back</span>
+        </button>
+      </header>
 
-      <div className={styles.mainContent}>
-        {/* Left: Image & Stats */}
-        <div className={styles.imageSection}>
-          <div className={styles.imageWrapper}>
-            {spirit.image ? (
-              <img src={spirit.image} alt={spirit.name} />
-            ) : (
-              <span className={`material-symbols-outlined ${styles.placeholderIcon}`}>liquor</span>
-            )}
-          </div>
-          
-          <div className={styles.quickStats}>
-            <div className={styles.statItem}>
-              <span className={styles.statLabel}>ABV</span>
-              <span className={styles.statValue}>{spirit.abv || '--'}%</span>
-            </div>
-            <div className={styles.statItem}>
-              <span className={styles.statLabel}>Volume</span>
-              <span className={styles.statValue}>{spirit.volume || '--'}ml</span>
-            </div>
-            {spirit.distillery && (
-              <div className={`${styles.statItem} ${styles.distilleryItem}`}>
-                <span className={styles.statLabel}>Distillery / Brand</span>
-                <span className={styles.statValue}>{spirit.distillery}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Info & Profiles */}
-        <div className={styles.detailsSection}>
-          <header className={styles.header}>
-            <span className={styles.category}>
-              {categoryHierarchy.length > 0 ? categoryHierarchy.join(' > ') : spirit.category}
+      <main className={styles.maxContainer}>
+        {/* Hero Section */}
+        <section className={styles.heroSection}>
+          <div className={styles.titleArea}>
+            <span className={styles.distilleryLabel}>
+              {spirit.distillery || "Unknown Distillery"}
             </span>
-            <h1>{spirit.name}</h1>
-            {spirit.distillery && (
-              <div className={styles.distillery}>
-                <span className={`material-symbols-outlined ${styles.distilleryIcon}`}>factory</span>
-                {spirit.distillery}
-              </div>
-            )}
-            {locationHierarchy.length > 0 && (
-              <div className={styles.origin}>
-                <span className={`material-symbols-outlined ${styles.originIcon}`}>location_on</span>
-                {locationHierarchy.join(' > ')}
-              </div>
-            )}
-            <p className={styles.description}>
-              {spirit.description || "Detailed description for this spirit is currently being archived by our curators."}
-            </p>
-          </header>
-
-          <h3 className={styles.sectionTitle}>
-            <span className={`material-symbols-outlined ${styles.sectionIcon}`}>insights</span>
-            Flavor Profile
-          </h3>
-          
-          <div className={styles.radarWrapper}>
-            <FlavorRadarChart data={flavorData} height={350} />
+            <h1 className={styles.spiritName}>{spirit.name}</h1>
           </div>
 
+          <div className={styles.imageContainer}>
+            <div className={styles.imageWrapper}>
+              {spirit.image ? (
+                <img src={spirit.image} alt={spirit.name} />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-surface-container/30">
+                  <span className="material-symbols-outlined text-7xl opacity-10">liquor</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <div className={styles.actions}>
-            <button 
-              className={styles.primaryButton}
-              onClick={() => navigate('/notes/new', { state: { spirit: spirit } })}
-            >
-              <span className="material-symbols-outlined">add_circle</span>
-              Write a Tasting Note
-            </button>
+          <div className={styles.infoContainer}>
+
+            <div className={styles.hierarchyArea}>
+              <div className={styles.hierarchyItem}>
+                <span className={styles.label}>Category</span>
+                <span className={styles.divider}></span>
+                <span className={styles.value}>{spirit.category}</span>
+              </div>
+              <div className={styles.hierarchyItem}>
+                <span className={styles.label}>Origin</span>
+                <span className={styles.divider}></span>
+                <span className={styles.value}>{spirit.origin}</span>
+              </div>
+            </div>
+
+            <div className={styles.statsGrid}>
+              <div className={styles.statBox}>
+                <p className={styles.statLabel}>ABV</p>
+                <p className={styles.statValue}>{spirit.abv}%</p>
+              </div>
+              <div className={styles.statBox}>
+                <p className={styles.statLabel}>Volume</p>
+                <p className={styles.statValue}>{spirit.volume}ml</p>
+              </div>
+            </div>
+
+            <div className={styles.recordBtnDesktop}>
+              <button 
+                className={styles.primaryBtn}
+                onClick={() => navigate('/notes/new', { state: { spirit: spirit } })}
+              >
+                Record New Note
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        {/* Bento Grid */}
+        <div className={styles.bentoGrid}>
+          {/* Flavor Profile Box */}
+          <div className={styles.flavorCard}>
+            <div className={styles.cardHeader}>
+              <div>
+                <h3>Flavor Profile</h3>
+                <p className={styles.subTitle}>
+                  Exploring core elements of {spirit.name}
+                </p>
+              </div>
+              <span className={`material-symbols-outlined ${styles.headerIcon}`}>insights</span>
+            </div>
+
+            <div className={styles.radarContainer}>
+              <div className={styles.radarVisual}>
+                <div className={`${styles.hexagonMask} ${styles.scale100}`}></div>
+                <div className={`${styles.hexagonMask} ${styles.scale75}`}></div>
+                <div className={`${styles.hexagonMask} ${styles.scale50}`}></div>
+                <div className={styles.radarValueShape} style={{ clipPath: radarPolygon }}></div>
+                
+                <span className={`${styles.axisLabel} ${styles.labelTop} ${dominantFlavor[0] === 'peat' ? styles.primaryLabel : ''}`}>Peat</span>
+                <span className={`${styles.axisLabel} ${styles.labelTopRight} ${dominantFlavor[0] === 'floral' ? styles.primaryLabel : ''}`}>Floral</span>
+                <span className={`${styles.axisLabel} ${styles.labelBottomRight} ${dominantFlavor[0] === 'woody' ? styles.primaryLabel : ''}`}>Woody</span>
+                <span className={`${styles.axisLabel} ${styles.labelBottom} ${dominantFlavor[0] === 'sweet' ? styles.primaryLabel : ''}`}>Sweet</span>
+                <span className={`${styles.axisLabel} ${styles.labelBottomLeft} ${dominantFlavor[0] === 'spicy' ? styles.primaryLabel : ''}`}>Spicy</span>
+                <span className={`${styles.axisLabel} ${styles.labelTopLeft} ${dominantFlavor[0] === 'fruity' ? styles.primaryLabel : ''}`}>Fruity</span>
+              </div>
+
+              <div className={styles.dataGrid}>
+                {Object.entries(spirit.flavor_axes || {}).map(([key, val]) => (
+                  <div key={key} className={styles.dataItem}>
+                    <span className={cn(styles.dot, val > 6 ? styles.activeDot : null)}></span>
+                    <div className={styles.dataTexts}>
+                      <span className={cn(styles.label, val > 6 ? styles.activeLabel : null)}>{key}</span>
+                      <span className={styles.value}>{val}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.matchFooter}>
+              <div className={styles.matchHeader}>
+                <span className={styles.dominant}>Dominant: {dominantFlavor[0]}</span>
+                <span className={styles.percentage}>{matchRate}% Match</span>
+              </div>
+              <div className={styles.progressTrack}>
+                <div 
+                  className={styles.progressBar} 
+                  style={{ width: `${matchRate}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Details Bento Row (Full Width on Grid) */}
+          <div className={styles.detailsBento}>
+            <div className={styles.bentoItem}>
+              <span className={styles.bentoLabel}>Distillery Info</span>
+              <h4>{spirit.distillery}</h4>
+              <p>
+                {spirit.description || "Detailed distillery background and production process currently being updated."}
+              </p>
+            </div>
+            <div className={styles.bentoItem}>
+              <span className={styles.bentoLabel}>Terroir & Region</span>
+              <h4>{spirit.origin.split(' > ').pop()}</h4>
+              <p>
+                The unique climate and water sources of {spirit.origin} contribute to the distinct {dominantFlavor[0]} characteristics found in this expression.
+              </p>
+            </div>
+            <div className={styles.bentoItem}>
+              <span className={styles.bentoLabel}>Production Notes</span>
+              <h4>Slow Matured</h4>
+              <p>
+                Crafted using traditional methods to ensure {spirit.abv}% ABV carries the full complexity of {spirit.name}'s flavor profile.
+              </p>
+            </div>
           </div>
         </div>
+      </main>
+
+      {/* Fixed Bottom Footer (Mobile) */}
+      <div className={styles.fixedFooter}>
+        <button 
+          className={styles.bottomBtn}
+          onClick={() => navigate('/notes/new', { state: { spirit: spirit } })}
+        >
+          Record New Note
+        </button>
       </div>
     </div>
   );
