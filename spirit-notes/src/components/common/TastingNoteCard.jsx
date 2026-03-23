@@ -30,7 +30,6 @@ const TastingNoteCard = ({ note, variant = 'dashboard' }) => {
         
         <div className={styles.statContent}>
           <div className={styles.statTitles}>
-            <p className={styles.distilleryTiny}>{note.distillery || "Distillery"}</p>
             <h5 className={styles.statName}>{title || spiritName}</h5>
           </div>
 
@@ -40,8 +39,8 @@ const TastingNoteCard = ({ note, variant = 'dashboard' }) => {
               <span className={styles.statSpecValue}>{note.category || "Whiskey > Scotch"}</span>
             </div>
             <div className={styles.statSpecItem}>
-              <span className={styles.statSpecLabel}>Origin</span>
-              <span className={styles.statSpecValue}>{note.origin || "Scotland > Speyside"}</span>
+              <span className={styles.statSpecLabel}>Spirit</span>
+              <span className={styles.statSpecValue}>{spiritName || "Unknown"}</span>
             </div>
           </div>
 
@@ -61,27 +60,68 @@ const TastingNoteCard = ({ note, variant = 'dashboard' }) => {
   }
 
   if (variant === 'collection') {
+    // Robust date parsing
+    let dateObj = null;
+    if (note.date instanceof Date) {
+      dateObj = note.date;
+    } else if (note.date && typeof note.date.toDate === 'function') {
+      dateObj = note.date.toDate();
+    } else if (note.date) {
+      dateObj = new Date(note.date);
+    }
+
+    const formattedDate = (dateObj && !isNaN(dateObj)) 
+      ? dateObj.toLocaleDateString('en-US', {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric'
+        })
+      : "Oct 12, 2023"; // Fallback
+
     return (
       <div 
         onClick={() => navigate(`/notes/${note.id}`)}
-        className={styles.collectionCard}
+        className={styles.bentoCard}
       >
-        <div className={styles.imageWrapper}>
+        <div className={styles.bentoImageWrapper}>
           {displayImage && !imgError ? (
-            <img src={displayImage} alt={spiritName} onError={() => setImgError(true)} />
+            <img 
+              src={displayImage} 
+              alt={spiritName} 
+              className={styles.bentoImage}
+              onError={() => setImgError(true)} 
+            />
           ) : (
-            <div className={styles.placeholder}>
+            <div className={styles.bentoPlaceholder}>
               <span className="material-symbols-outlined">liquor</span>
             </div>
           )}
+          <div className={styles.bentoRatingBadge}>
+            <span className="material-symbols-outlined">star</span>
+            <span>{rating?.toFixed(1) || '0.0'}</span>
+          </div>
         </div>
-        <div className={styles.overlay}></div>
-        <div className={styles.content}>
-          <p className={styles.title}>{title || spiritName}</p>
-          {title && <p className={styles.spiritSubtitle}>{spiritName}</p>}
-          <div className={styles.ratingRow}>
-            <span className={`material-symbols-outlined ${styles.starIcon}`}>star</span>
-            <span className={styles.ratingText}>{rating?.toFixed(1) || '0.0'} Rating</span>
+
+        <div className={styles.bentoContent}>
+          <div className={styles.bentoTitles}>
+            <h5 className={styles.bentoName}>{title || spiritName}</h5>
+          </div>
+
+          <div className={styles.bentoMeta}>
+            <div className={styles.bentoMetaItem}>
+              <span className={styles.bentoMetaLabel}>
+                <span className="material-symbols-outlined">liquor</span>
+                Spirit
+              </span>
+              <span className={styles.bentoMetaValue}>{spiritName || "Unknown"}</span>
+            </div>
+            <div className={styles.bentoMetaItem}>
+              <span className={styles.bentoMetaLabel}>
+                <span className="material-symbols-outlined">calendar_today</span>
+                Tasted on
+              </span>
+              <span className={styles.bentoMetaValue}>{formattedDate || "Oct 12, 2023"}</span>
+            </div>
           </div>
         </div>
       </div>

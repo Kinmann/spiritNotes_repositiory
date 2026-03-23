@@ -10,6 +10,7 @@ const Collection = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('latest'); // 'latest' or 'rating'
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,7 +18,7 @@ const Collection = () => {
       try {
         const q = query(
           collection(db, 'users', auth.currentUser.uid, 'notes'),
-          orderBy('createdAt', 'desc')
+          orderBy(sortBy === 'latest' ? 'createdAt' : 'rating', 'desc')
         );
         const querySnapshot = await getDocs(q);
         setNotes(querySnapshot.docs.map(doc => {
@@ -26,7 +27,7 @@ const Collection = () => {
             id: doc.id,
             spiritName: data.name,
             rating: data.rating,
-            date: data.createdAt?.toDate() || new Date(),
+            date: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
             image: data.image || null,
             ...data
           };
@@ -41,7 +42,7 @@ const Collection = () => {
     };
 
     fetchData();
-  }, []);
+  }, [sortBy]);
 
   const filteredNotes = notes.filter(note => 
     note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -61,28 +62,46 @@ const Collection = () => {
 
   return (
     <div className={styles.collectionPage}>
-      {/* Collection Header & Tabs */}
-      <section className={styles.headerSection}>
-        <h2 className={styles.title}>Personal Vault</h2>
-      </section>
-
-      {/* Search & Filter Section */}
-      <section className={styles.searchSection}>
-        <div className={styles.searchBar}>
-          <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
-          <input 
-            placeholder="Search your vault..." 
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Title & Search Section */}
+      <section className={styles.heroSection}>
+        <div className={styles.titleGroup}>
+          <span className={styles.subtitle}>The Curated Journal</span>
+          <h1 className={styles.title}>
+            Personal <span className={styles.primaryText}>Vault</span>
+          </h1>
         </div>
-        <button className={styles.filterButton}>
-          <span className="material-symbols-outlined">tune</span>
-        </button>
+
+        <div className={styles.actionGroup}>
+          <div className={styles.searchContainer}>
+            <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+            <input 
+              className={styles.searchInput}
+              placeholder="Search within vault" 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className={styles.filterChips}>
+            <button 
+              className={`${styles.filterChip} ${sortBy === 'latest' ? styles.active : ''}`}
+              onClick={() => setSortBy('latest')}
+            >
+              <span className="material-symbols-outlined">tune</span>
+              Latest
+            </button>
+            <button 
+              className={`${styles.filterChip} ${sortBy === 'rating' ? styles.active : ''}`}
+              onClick={() => setSortBy('rating')}
+            >
+              <span className="material-symbols-outlined">star</span>
+              Rating
+            </button>
+          </div>
+        </div>
       </section>
 
-      {/* Content Grid */}
+      {/* Spirit List / Content Grid */}
       {filteredNotes.length > 0 ? (
         <section className={styles.contentGrid}>
           {filteredNotes.map((note) => (
