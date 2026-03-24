@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getRecommendations } from '@/api/recommendations';
 import { getUserNotes } from '@/api/notes';
+import api from '@/api';
 import { auth, db } from '@/firebase';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
@@ -73,11 +74,9 @@ const Home = () => {
       setRecommendations(recs.recommendations || []);
 
       try {
-        const personaRes = await fetch(`http://localhost:5000/api/persona/${uid}`, { method: 'POST' });
-        if (personaRes.ok) {
-          const personaData = await personaRes.json();
-          // The backend returns { success: true, persona: { ... } }
-          setPersona(personaData.persona);
+        const personaRes = await api.post(`/persona/${uid}`);
+        if (personaRes.data.success) {
+          setPersona(personaRes.data.persona);
         }
       } catch (pErr) {
         console.error('Error fetching persona:', pErr);

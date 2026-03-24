@@ -272,21 +272,32 @@ router.post('/recommendations/:userId', async (req, res) => {
     
     let recs = [];
     if (!genAI) {
+      // Fallback if AI is disabled or key is missing
       recs = top3.map(c => ({
         id: c.id,
         name: c.name,
-        reason: `${c.category} 카테고리에서 추천하는 주류입니다.`
+        reason: `${c.category || ' whiskey'} 카테고리에서 당신의 취향과 가장 잘 어울리는 평점을 받은 주류입니다.`
       }));
     } else {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
-      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category})`).join('\n');
-      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 sentences. Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
+        const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category || 'Unknown'})`).join('\n');
+        const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 Japanese or Korean sentences (based on context, default to Korean). Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-      recs = JSON.parse(jsonStr);
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+        recs = JSON.parse(jsonStr);
+      } catch (aiError) {
+        console.error("AI Recommendation error:", aiError);
+        // Fallback if AI generation fails
+        recs = top3.map(c => ({
+          id: c.id,
+          name: c.name,
+          reason: `${c.category || ' whiskey'} 카테고리에서 추천하는 특별한 주류입니다.`
+        }));
+      }
     }
 
     const finalRecs = top3.map((spirit, i) => {
@@ -308,26 +319,31 @@ router.post('/persona/:userId', async (req, res) => {
     const { userId } = req.params;
     const userDoc = await db.collection('users').doc(userId).get();
     const userData = userDoc.data();
-    if (!userData || !userData.flavorDNA || !genAI) {
-      return res.json({ 
-        success: true, 
-        persona: {
-          title: "섬세한 미식가",
-          description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
-          characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
-          recommendationFocus: ["복합미", "질감", "피니시"]
+    let persona = {
+      title: "섬세한 미식가",
+      description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
+      characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
+      recommendationFocus: ["복합미", "질감", "피니시"]
+    };
+
+    if (userData && userData.flavorDNA && genAI) {
+      try {
+        const { flavorDNA } = userData;
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const prompt = `Analyze this Whiskey Flavor DNA: ${JSON.stringify(flavorDNA)}. Create a poetic Taste Persona in Korean. Output JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
+        const aiPersona = JSON.parse(jsonStr);
+        if (aiPersona && aiPersona.title) {
+          persona = aiPersona;
         }
-      });
+      } catch (aiError) {
+        console.error("AI Persona error:", aiError);
+      }
     }
-
-    const { flavorDNA } = userData;
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const prompt = `Analyze this Whiskey Flavor DNA: ${JSON.stringify(flavorDNA)}. Create a poetic Taste Persona. Output JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
-    const persona = JSON.parse(jsonStr);
+    
     res.json({ success: true, persona });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -35,7 +35,7 @@ const Navbar = () => {
           <img 
             alt="Spirit Notes Logo" 
             className={styles.logoImg} 
-            src="https://lh3.googleusercontent.com/aida/ADBb0ugcO_nGc0111O0_g0Mmzs6UyuQn7ck3T8ZLJArKvJugR6Wc-9UVIG4mivMF4ebOVVFe9jYDpB2O4iSIAlv_5hxN4TSdjyePn5YnZoW5Cx2AS_7lBavk1gycTxlQi_9iGYWjpDWsxPRgDZbX7_aE-Wl-hERwVDinXf0ed29OzuNuucXaAE1DxIYqqX0cvQo0crb3Bzgkj4O_uuyYySefPXQLP3y8zLh39unIGXqyuLklfqhgz8z6_jzDjLHpLA9-JFZ9yOx1bHA"
+            src="/logo.png"
           />
         </Link>
       </div>
