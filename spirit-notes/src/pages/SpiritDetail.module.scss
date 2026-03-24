@@ -3,8 +3,8 @@
   background-color: #131313;
   color: #e5e2e1;
   font-family: 'Inter', sans-serif;
-  padding-top: 2rem;
-  padding-bottom: 3rem;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
@@ -299,65 +299,26 @@
 }
 
 // Radar Visual (Hexagon)
-.radarVisual {
-  position: relative;
+.radarWrapper {
+  flex-shrink: 0;
+  width: 240px;
+  height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 8rem;
-  height: 8rem;
+  position: relative;
 
-  @media (min-width: 768px) {
-    width: 12rem;
-    height: 12rem;
+  // Custom Radar Chart styling for Recharts
+  :global(.recharts-polar-grid-concentric-polygon) {
+    stroke: rgba(209, 197, 180, 0.2);
   }
-
-  .hexagonMask {
-    position: absolute;
-    inset: 0;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    background-color: rgba(78, 70, 57, 0.1);
-  }
-
-  .scale100 { transform: scale(1); }
-  .scale75 { transform: scale(0.75); }
-  .scale50 { transform: scale(0.5); }
-
-  .radarValueShape {
-    position: absolute;
-    inset: 0;
-    background-color: rgba(233, 193, 118, 0.3);
-    border: 2px solid #e9c176;
-    z-index: 1;
-    // clip-path set inline via reactant
-  }
-
-  .axisLabel {
-    position: absolute;
-    font-size: 8px;
+  :global(.recharts-polar-angle-axis-tick-value) {
+    font-size: 9px;
     font-weight: 700;
+    fill: rgba(209, 197, 180, 0.7);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #d1c5b4;
-    white-space: nowrap;
-
-    @media (min-width: 768px) {
-      font-size: 10px;
-    }
-
-    &.primaryLabel {
-      color: #e9c176;
-      font-weight: 800;
-    }
   }
-
-  .labelTop { top: -0.75rem; left: 50%; transform: translateX(-50%); }
-  .labelTopRight { top: 0.5rem; right: -2rem; @media (min-width: 768px) { right: -3rem; } }
-  .labelBottomRight { bottom: 0.5rem; right: -2.5rem; @media (min-width: 768px) { right: -3.5rem; } }
-  .labelBottom { bottom: -0.75rem; left: 50%; transform: translateX(-50%); }
-  .labelBottomLeft { bottom: 0.5rem; left: -2.5rem; @media (min-width: 768px) { left: -3.5rem; } }
-  .labelTopLeft { top: 0.5rem; left: -2rem; @media (min-width: 768px) { left: -3rem; } }
 }
 
 .dataGrid {

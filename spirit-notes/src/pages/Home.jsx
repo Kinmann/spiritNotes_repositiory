@@ -42,7 +42,7 @@ const Home = () => {
         if (data.flavorDNA) {
           const dna = data.flavorDNA;
           const mappedData = [
-            { subject: 'Peat', value: dna.peat || 0 },
+            { subject: 'Peaty', value: dna.peat || 0 },
             { subject: 'Floral', value: dna.floral || 0 },
             { subject: 'Fruity', value: dna.fruity || 0 },
             { subject: 'Woody', value: dna.woody || 0 },
@@ -127,6 +127,7 @@ const Home = () => {
             </Link>
           </div>
         </div>
+
       </section>
 
       {/* 3. Today's Curation (Hero) */}

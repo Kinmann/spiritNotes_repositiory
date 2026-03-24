@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getSpiritById } from '@/api/spirits';
 import { auth, db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './SpiritDetail.module.scss';
 import { cn } from '@/lib/utils';
 
@@ -193,27 +194,35 @@ const SpiritDetail = () => {
             </div>
 
             <div className={styles.radarContainer}>
-              <div className={styles.radarVisual}>
-                <div className={`${styles.hexagonMask} ${styles.scale100}`}></div>
-                <div className={`${styles.hexagonMask} ${styles.scale75}`}></div>
-                <div className={`${styles.hexagonMask} ${styles.scale50}`}></div>
-                <div className={styles.radarValueShape} style={{ clipPath: radarPolygon }}></div>
-                
-                <span className={`${styles.axisLabel} ${styles.labelTop} ${dominantFlavor[0] === 'peat' ? styles.primaryLabel : ''}`}>Peat</span>
-                <span className={`${styles.axisLabel} ${styles.labelTopRight} ${dominantFlavor[0] === 'floral' ? styles.primaryLabel : ''}`}>Floral</span>
-                <span className={`${styles.axisLabel} ${styles.labelBottomRight} ${dominantFlavor[0] === 'woody' ? styles.primaryLabel : ''}`}>Woody</span>
-                <span className={`${styles.axisLabel} ${styles.labelBottom} ${dominantFlavor[0] === 'sweet' ? styles.primaryLabel : ''}`}>Sweet</span>
-                <span className={`${styles.axisLabel} ${styles.labelBottomLeft} ${dominantFlavor[0] === 'spicy' ? styles.primaryLabel : ''}`}>Spicy</span>
-                <span className={`${styles.axisLabel} ${styles.labelTopLeft} ${dominantFlavor[0] === 'fruity' ? styles.primaryLabel : ''}`}>Fruity</span>
+              <div className={styles.radarWrapper}>
+                <FlavorRadarChart 
+                  data={[
+                    { subject: 'Peaty', value: spirit.flavor_axes?.peat || 0 },
+                    { subject: 'Floral', value: spirit.flavor_axes?.floral || 0 },
+                    { subject: 'Fruity', value: spirit.flavor_axes?.fruity || 0 },
+                    { subject: 'Woody', value: spirit.flavor_axes?.woody || 0 },
+                    { subject: 'Spicy', value: spirit.flavor_axes?.spicy || 0 },
+                    { subject: 'Sweet', value: spirit.flavor_axes?.sweet || 0 },
+                  ]} 
+                  color="var(--primary)" 
+                  height={240} 
+                />
               </div>
 
               <div className={styles.dataGrid}>
-                {Object.entries(spirit.flavor_axes || {}).map(([key, val]) => (
+                {[
+                  { key: 'peat', label: 'Peaty' },
+                  { key: 'floral', label: 'Floral' },
+                  { key: 'fruity', label: 'Fruity' },
+                  { key: 'woody', label: 'Woody' },
+                  { key: 'spicy', label: 'Spicy' },
+                  { key: 'sweet', label: 'Sweet' },
+                ].map(({ key, label }) => (
                   <div key={key} className={styles.dataItem}>
-                    <span className={cn(styles.dot, val > 6 ? styles.activeDot : null)}></span>
+                    <span className={cn(styles.dot, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeDot : null)}></span>
                     <div className={styles.dataTexts}>
-                      <span className={cn(styles.label, val > 6 ? styles.activeLabel : null)}>{key}</span>
-                      <span className={styles.value}>{val}</span>
+                      <span className={cn(styles.label, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeLabel : null)}>{label}</span>
+                      <span className={styles.value}>{Math.round(spirit.flavor_axes?.[key] || 0)}</span>
                     </div>
                   </div>
                 ))}

@@ -4,7 +4,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 1rem;
+  padding-top: 6rem;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   box-sizing: border-box;
@@ -12,7 +12,7 @@
   flex-direction: column;
   gap: 3.5rem;
   animation: fadeIn 0.8s ease-out;
-  padding-bottom: 0rem;
+  padding-bottom: 6rem;
 }
 
 @keyframes fadeIn {
@@ -61,10 +61,14 @@
 }
 
 .personaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
   .personaCard {
     @extend .glassCard;
     border-radius: 1.5rem;
-    padding: 1.5rem;
+    padding: 2rem;
     position: relative;
     overflow: hidden;
     min-height: 180px;
@@ -98,6 +102,7 @@
       font-weight: 800;
       letter-spacing: 0.25em;
       text-transform: uppercase;
+      margin: 0;
     }
 
     .personaDescription {
@@ -115,7 +120,7 @@
         font-size: 0.875rem;
         line-height: 1.6;
         max-width: 100%;
-        width: 480px;
+        width: 380px;
         margin-top: 0.25rem;
       }
     }
@@ -141,6 +146,7 @@
       }
     }
   }
+
 }
 
 .curationSection {

@@ -5,7 +5,8 @@
   background-color: $background;
   color: $on-surface;
   font-family: $font-sans;
-  padding-bottom: 3rem;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
   position: relative;
   overflow-x: hidden;
 }
@@ -467,52 +468,25 @@
   }
 }
 
-.radarVisual {
-  position: relative;
-  width: 192px;
-  height: 192px;
+.radarWrapper {
   flex-shrink: 0;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 
-  .hexagonGrid {
-    position: absolute;
-    inset: 0;
-    background-color: rgba($outline, 0.05);
-    clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
-    border: 1px solid rgba($outline, 0.1);
-
-    &.scale100 { transform: scale(1); }
-    &.scale75 { transform: scale(0.75); }
-    &.scale50 { transform: scale(0.5); }
+  // Custom Radar Chart styling for Recharts
+  :global(.recharts-polar-grid-concentric-polygon) {
+    stroke: rgba($outline, 0.1);
   }
-
-  .radarPolygon {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba($primary, 0.4) 0%, rgba($primary, 0.2) 100%);
-    border: 2px solid $primary;
-    filter: drop-shadow(0 0 8px rgba($primary, 0.3));
-    // clip-path is injected via inline style in JSX
-    transition: clip-path 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .axisLabel {
-    position: absolute;
-    font-size: 10px;
-    font-weight: 800;
+  :global(.recharts-polar-angle-axis-tick-value) {
+    font-size: 8px;
+    font-weight: 700;
+    fill: rgba($on-surface-variant, 0.6);
     text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: $on-surface-variant;
-    opacity: 0.8;
-
-    &.top { top: -12px; left: 50%; transform: translateX(-50%); color: $primary; }
-    &.topRight { top: 8px; right: -48px; }
-    &.bottomRight { bottom: 8px; right: -56px; }
-    &.bottom { bottom: -12px; left: 50%; transform: translateX(-50%); }
-    &.bottomLeft { bottom: 8px; left: -56px; }
-    &.topLeft { top: 8px; left: -48px; }
+    letter-spacing: 0.1em;
   }
 }
 

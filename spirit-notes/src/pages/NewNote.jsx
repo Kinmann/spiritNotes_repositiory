@@ -5,7 +5,7 @@ import { db, auth, storage } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
-// Removed unused RatingPicker and FlavorRadarChart
+import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './NewNote.module.scss';
 
 const NewNote = () => {
@@ -301,7 +301,7 @@ const NewNote = () => {
   };
 
   const flavorFields = [
-    { name: 'peat', label: 'Peat' },
+    { name: 'peat', label: 'Peaty' },
     { name: 'floral', label: 'Floral' },
     { name: 'fruity', label: 'Fruity' },
     { name: 'woody', label: 'Woody' },
@@ -497,32 +497,19 @@ const NewNote = () => {
 
               <div className={styles.flavorVisualSection}>
                 {/* Custom Radar Visual (Using polygon based on sliders) */}
-                <div className={styles.radarVisual}>
-                  <div className={`${styles.hexagonGrid} ${styles.scale100}`}></div>
-                  <div className={`${styles.hexagonGrid} ${styles.scale75}`}></div>
-                  <div className={`${styles.hexagonGrid} ${styles.scale50}`}></div>
-                  
-                  {/* Radar Polygon */}
-                  <div 
-                    className={styles.radarPolygon}
-                    style={{
-                      clipPath: `polygon(
-                        50% ${50 - formData.peat * 5}%, 
-                        ${50 + formData.floral * 4.33}% ${50 - formData.floral * 2.5}%, 
-                        ${50 + formData.fruity * 4.33}% ${50 + formData.fruity * 2.5}%, 
-                        50% ${50 + formData.woody * 5}%, 
-                        ${50 - formData.spicy * 4.33}% ${50 + formData.spicy * 2.5}%, 
-                        ${50 - formData.sweet * 4.33}% ${50 - formData.sweet * 2.5}%
-                      )`
-                    }}
-                  ></div>
-
-                  <span className={`${styles.axisLabel} ${styles.top}`}>Peat</span>
-                  <span className={`${styles.axisLabel} ${styles.topRight}`}>Floral</span>
-                  <span className={`${styles.axisLabel} ${styles.bottomRight}`}>Fruity</span>
-                  <span className={`${styles.axisLabel} ${styles.bottom}`}>Woody</span>
-                  <span className={`${styles.axisLabel} ${styles.bottomLeft}`}>Spicy</span>
-                  <span className={`${styles.axisLabel} ${styles.topLeft}`}>Sweet</span>
+                <div className={styles.radarWrapper}>
+                  <FlavorRadarChart 
+                    data={[
+                      { subject: 'Peaty', value: formData.peat || 0 },
+                      { subject: 'Floral', value: formData.floral || 0 },
+                      { subject: 'Fruity', value: formData.fruity || 0 },
+                      { subject: 'Woody', value: formData.woody || 0 },
+                      { subject: 'Spicy', value: formData.spicy || 0 },
+                      { subject: 'Sweet', value: formData.sweet || 0 },
+                    ]} 
+                    color="var(--primary)" 
+                    height={200} 
+                  />
                 </div>
 
                 {/* Sliders Grid */}

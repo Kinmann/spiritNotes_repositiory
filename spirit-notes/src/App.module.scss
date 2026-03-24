@@ -8,20 +8,15 @@
 
 .mainLayout {
   display: flex;
-  padding-top: 56px; // Navbar height
 }
 
 .mainContent {
   flex: 1;
   min-width: 0; // Allow flex child to shrink below content size
-  padding: 16px 0;
-  padding-bottom: 96px; // Space for bottom nav
   min-height: calc(100vh - 56px);
 
   @media (min-width: 768px) {
     margin-left: 256px; // Sidebar width
-    padding: 24px 0;
-    padding-bottom: 24px;
   }
 }
 
