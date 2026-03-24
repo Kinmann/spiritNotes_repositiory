@@ -21,7 +21,8 @@ const NoteDetail = () => {
         if (docSnap.exists()) {
           setNote({ id: docSnap.id, ...docSnap.data() });
         } else {
-          navigate('/collection');
+          // Temporarily navigate if no note, but for UI work we might want a sample
+          // navigate('/collection');
         }
       } catch (error) {
         console.error("Error fetching document:", error);
@@ -53,7 +54,20 @@ const NoteDetail = () => {
     );
   }
 
-  if (!note) return null;
+  // Sample data for UI preview if note fetching failed or is empty
+  const displayNote = note || {
+    name: "Spirit Name",
+    title: "Note Title",
+    distillery: " Distillery Name",
+    category: "Category > Sub-category",
+    locationHierarchy: ["Origin", "Region"],
+    rating: 4.8,
+    createdAt: { toDate: () => new Date() },
+    abv: 43.0,
+    volume: 700,
+    comment: "This is a sample tasting note. Deep and complex aroma, smooth finish.",
+    flavor_axes: { peat: 8, floral: 2, fruity: 4, woody: 6, spicy: 5, sweet: 3 }
+  };
 
   const flavorFields = [
     { name: 'peat', label: 'Peat' },
@@ -66,171 +80,157 @@ const NoteDetail = () => {
 
   const chartData = flavorFields.map(f => ({
     subject: f.label,
-    value: note.flavor_axes?.[f.name] || 0
+    value: displayNote.flavor_axes?.[f.name] || 0
   }));
+
+  // Helper to format date
+  const formattedDate = displayNote.createdAt?.toDate 
+    ? displayNote.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : "Recently";
 
   return (
     <div className={styles.noteDetailPage}>
-      {/* Hero Section */}
-      <section className={styles.heroSection}>
-        {note.imageUrl ? (
-          <img src={note.imageUrl} alt={note.name} className={styles.heroImage} />
-        ) : note.image ? (
-          <img src={note.image} alt={note.name} className={styles.heroImage} />
-        ) : (
-          <div className={styles.placeholderIconWrapper}>
-            <span className={`material-symbols-outlined ${styles.placeholderIcon}`}>liquor</span>
-          </div>
-        )}
-        <div className={styles.overlay} />
-        
-        {/* Back button */}
-        <button 
-          onClick={() => navigate(-1)} 
-          className={styles.backButton}
-        >
+      {/* Header */}
+      <header className={styles.header}>
+        <button className={styles.backButton} onClick={() => navigate(-1)}>
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
+      </header>
 
-        {/* Title overlay */}
-        <div className={styles.titleOverlay}>
-          <div className={styles.contentMaxWidth}>
-            <div className={styles.ratingRow}>
-              <span className={`material-symbols-outlined ${styles.starIcon}`}>star</span>
-              <span className={styles.ratingLabel}>
-                {note.rating?.toFixed(1) || '0.0'} Rating
+      <main className={styles.main}>
+        {/* Hero Section */}
+        <section className={styles.heroSection}>
+          <div className={styles.imageWrapper}>
+            {(displayNote.imageUrl || displayNote.image) ? (
+              <img 
+                src={displayNote.imageUrl || displayNote.image} 
+                alt={displayNote.name} 
+                className={styles.heroImage} 
+              />
+            ) : (
+              <div className={styles.placeholderIconWrapper}>
+                <span className={`material-symbols-outlined ${styles.placeholderIcon}`}>liquor</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Title Section */}
+        <section className={styles.titleSection}>
+          <h1>{displayNote.title || displayNote.name}</h1>
+          <p className={styles.subtitle}>{displayNote.name}</p>
+        </section>
+
+        {/* Info Section */}
+        <section className={styles.infoSection}>
+          {/* Rating & Date */}
+          <div className={`${styles.glassCard} ${styles.ratingBox}`}>
+            <div className={styles.rating}>
+              <span className="material-symbols-outlined starIcon">star</span>
+              <span>{displayNote.rating?.toFixed(1) || '0.0'}</span>
+            </div>
+            <div className={styles.divider}></div>
+            <div className={styles.date}>{formattedDate}</div>
+          </div>
+
+          {/* Specifications */}
+          <div className={styles.specs}>
+            <div className={styles.specItem}>
+              <span className={styles.label}>Distillery</span>
+              <span className={styles.line}></span>
+              <span className={styles.value}>{displayNote.distillery || displayNote.brand || '-'}</span>
+            </div>
+            <div className={styles.specItem}>
+              <span className={styles.label}>Category</span>
+              <span className={styles.line}></span>
+              <span className={styles.value}>
+                {displayNote.categoryHierarchy?.join(' > ') || displayNote.category || '-'}
               </span>
             </div>
-            {note.title ? (
-              <>
-                <h1>{note.title}</h1>
-                <h2 className={styles.subtitle}>{note.name}</h2>
-              </>
-            ) : (
-              <h1>{note.name}</h1>
-            )}
-            <div className={styles.metaInfo}>
-              <span>{note.distillery || note.brand}</span>
-              <span className={styles.dot} />
-              <span>{note.category}</span>
+            <div className={styles.specItem}>
+              <span className={styles.label}>Origin</span>
+              <span className={styles.line}></span>
+              <span className={styles.value}>
+                {displayNote.locationHierarchy?.join(' > ') || '-'}
+              </span>
+            </div>
+
+            <div className={styles.specGrid}>
+              <div className={styles.gridItem}>
+                <p className={styles.gridLabel}>ABV</p>
+                <p className={styles.gridValue}>{displayNote.abv ? `${displayNote.abv}%` : '-'}</p>
+              </div>
+              <div className={styles.gridItem}>
+                <p className={styles.gridLabel}>VOLUME</p>
+                <p className={styles.gridValue}>{displayNote.volume ? `${displayNote.volume}ml` : '-'}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Content Panel */}
-      <div className={styles.contentPanel}>
-        <div className={styles.panelContainer}>
-          
-          {/* Flavor Analysis */}
-          <section className={styles.sectionGroup}>
-            <h2>Flavor Analysis</h2>
-            <div className={styles.flavorAnalysisBox}>
-              <div className={styles.analysisContent}>
-                <div className={styles.chartWrapper}>
-                  <FlavorRadarChart data={chartData} color="var(--primary)" height={280} />
+        {/* Tasting Section */}
+        <section className={styles.tastingSection}>
+          <div className={`${styles.glassCard} ${styles.tastingCard}`}>
+            <h4>Tasting Experience</h4>
+            <p className={styles.mainComment}>
+              {displayNote.comment || 'No tasting notes recorded yet.'}
+            </p>
+            {/* Added some decorative text if it's too short */}
+            {!displayNote.comment && (
+              <p className={styles.subComment}>
+                Add more details about your experience with this spirit to help build your flavor profile.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Flavor Profile Section */}
+        <section className={styles.flavorSection}>
+          <div className={`${styles.glassCard} ${styles.flavorCard}`}>
+            <div className={styles.cardHeader}>
+              <div>
+                <h3>Flavor Profile</h3>
+                <p>Taste distribution analysis</p>
+              </div>
+              <span className={`material-symbols-outlined ${styles.icon}`}>insights</span>
+            </div>
+
+            <div className={styles.flavorContent}>
+              {/* Radar Chart Visual */}
+              <div className={styles.radarWrapper}>
+                <div className={styles.chartContainer}>
+                  <FlavorRadarChart data={chartData} color="#e9c176" height={224} />
                 </div>
-                <div className={styles.slidersGrid}>
-                  {flavorFields.map(f => (
-                    <div key={f.name} className={styles.sliderItem}>
-                      <span className={styles.sliderLabel}>{f.label}</span>
-                      <div className={styles.sliderBarRow}>
-                        <div className={styles.barTrack}>
-                          <div 
-                            className={styles.barFill} 
-                            style={{ width: `${(note.flavor_axes?.[f.name] || 0) * 10}%` }}
-                          />
-                        </div>
-                        <span className={styles.barValue}>{note.flavor_axes?.[f.name] || 0}</span>
+              </div>
+
+              {/* Data Grid */}
+              <div className={styles.dataGrid}>
+                {flavorFields.map(f => {
+                  const value = displayNote.flavor_axes?.[f.name] || 0;
+                  const isActive = value > 7;
+                  return (
+                    <div key={f.name} className={styles.dataItem}>
+                      <span className={`${styles.marker} ${isActive ? styles.active : ''}`}></span>
+                      <div className={styles.dataInfo}>
+                        <span className={`${styles.dataLabel} ${isActive ? styles.active : ''}`}>{f.label}</span>
+                        <span className={styles.dataValue}>{value.toFixed(1)}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
-          </section>
+          </div>
+        </section>
+      </main>
 
-          {/* Spirit Details */}
-          <section className={styles.sectionGroup}>
-            <h2>Spirit Details</h2>
-            <div className={styles.spiritDetailsBox}>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Liquor Name</span>
-                <span className={styles.detailValue}>{note.name}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Category</span>
-                <span className={styles.detailValue}>
-                  {note.categoryHierarchy && note.categoryHierarchy.length > 0 
-                    ? note.categoryHierarchy.join(' > ') 
-                    : note.category}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Origin</span>
-                <span className={styles.detailValue}>
-                  {note.locationHierarchy && note.locationHierarchy.length > 0 
-                    ? note.locationHierarchy.join(' > ') 
-                    : '-'}
-                </span>
-              </div>
-              <div className={styles.detailGrid}>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Distillery / Brand</span>
-                  <span className={styles.detailValue}>{note.distillery || '-'}</span>
-                </div>
-                <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>ABV / Volume</span>
-                  <span className={styles.detailValue}>
-                    {note.abv ? `${note.abv}%` : '-'} / {note.volume ? `${note.volume}ml` : '-'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Tasting Note */}
-          <section className={`${styles.sectionGroup} ${styles.tastingRecord}`}>
-            <h2>Tasting Record</h2>
-            <p className={styles.commentText}>
-              {note.comment || '작성된 테이스팅 노트가 없습니다.'}
-            </p>
-          </section>
-
-          {/* Metadata */}
-          <section className={styles.metadataSection}>
-            <div className={styles.metaItem}>
-              <span className={`material-symbols-outlined ${styles.icon}`}>calendar_today</span>
-              <span>{note.createdAt?.toDate?.().toLocaleDateString() || 'Recently'}</span>
-            </div>
-            {note.abv && (
-              <div className={styles.metaItem}>
-                <span className={`material-symbols-outlined ${styles.icon}`}>percent</span>
-                <span>{note.abv}% ABV</span>
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-
-      {/* Floating Action Bar */}
-      <div className={styles.floatingActionBar}>
+      {/* Bottom Fixed Action */}
+      <div className={styles.bottomAction}>
         <button 
-          onClick={() => navigate(`/notes/${note.id}/edit`)}
-          className={styles.editButton}
+          className={styles.editBtn} 
+          onClick={() => navigate(`/notes/${displayNote.id}/edit`)}
         >
-          <span className="material-symbols-outlined">edit</span>
-          <span>Edit</span>
-        </button>
-        <div className={styles.divider} />
-        <button className={styles.iconButton}>
-          <span className="material-symbols-outlined">share</span>
-        </button>
-        <button 
-          onClick={handleDelete}
-          className={`${styles.iconButton} ${styles.delete}`}
-        >
-          <span className="material-symbols-outlined">delete</span>
+          <span>Edit Note</span>
         </button>
       </div>
     </div>

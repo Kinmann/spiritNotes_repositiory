@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-fixed": "#ffdea5",
+                        "inverse-on-surface": "#313030",
+                        "on-tertiary-container": "#3b3b3b",
+                        "on-primary": "#412d00",
+                        "on-secondary": "#5a1b1a",
+                        "secondary": "#ffb3ae",
+                        "inverse-primary": "#775a19",
+                        "surface-dim": "#131313",
+                        "primary-container": "#c5a059",
+                        "tertiary": "#c8c6c5",
+                        "outline-variant": "#4e4639",
+                        "on-error": "#690005",
+                        "on-surface": "#e5e2e1",
+                        "tertiary-container": "#a7a5a5",
+                        "on-secondary-container": "#fb9b95",
+                        "surface-container": "#201f1f",
+                        "primary-fixed-dim": "#e9c176",
+                        "on-primary-fixed": "#261900",
+                        "error": "#ffb4ab",
+                        "background": "#131313",
+                        "on-primary-container": "#4e3700",
+                        "on-background": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-surface": "#e5e2e1",
+                        "on-tertiary-fixed-variant": "#474747",
+                        "on-secondary-fixed": "#3d0507",
+                        "surface-bright": "#393939",
+                        "on-tertiary": "#303030",
+                        "on-secondary-fixed-variant": "#76302e",
+                        "on-error-container": "#ffdad6",
+                        "surface-tint": "#e9c176",
+                        "surface": "#131313",
+                        "surface-variant": "#353534",
+                        "tertiary-fixed": "#e4e2e1",
+                        "outline": "#9a8f80",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "primary": "#e9c176",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-surface-variant": "#d1c5b4",
+                        "on-primary-fixed-variant": "#5d4201",
+                        "secondary-fixed": "#ffdad7",
+                        "surface-container-highest": "#353534",
+                        "secondary-container": "#76302e",
+                        "error-container": "#93000a"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hexagon-mask {
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        .glass-card {
+            background: rgba(32, 31, 31, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(233, 193, 118, 0.1);
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<!-- Header -->
+<header class="fixed top-0 w-full z-50 flex items-center px-6 h-16 bg-[#131313]/80 backdrop-blur-md">
+<button class="flex items-center justify-center text-[#e9c176] hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-2xl" data-icon="arrow_back">arrow_back</span>
+</button>
+</header>
+<main class="pt-20 pb-40 px-6 max-w-7xl mx-auto min-h-screen space-y-12">
+<!-- Hero Section: Image -->
+<section class="max-w-2xl mx-auto">
+<div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-surface-container shadow-2xl relative">
+<img alt="The Lore Spirit Bottle" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_M_WONa_4_JE58TG_ZhWJvj7dz05iWY585mDBjIikkH7ngbDeJ1yHs8pcT1WC8d4e9jgrT2Ct1D6_-_p93UCOfrMfXQnuZLLQR00Kr0wAmkzogQZ69aua9rZQdAt3y5lJUEhBhfxpxGAw79mTDczDNm_I95wlvmXoHPMjLLG_qBmYhwqwCfEIJpWScEBuyC_YQd5qZJNYp9b9okGHBWwcjHauZzLnz_oKxZygphsuvzAxWzWGyQt9seh8hsYi8Nq3sRD0urKvcQ"/>
+</div>
+</section>
+<!-- Note Title & Spirit Name Section (Moved here) -->
+<section class="max-w-2xl mx-auto space-y-1">
+<h1 class="text-5xl md:text-6xl font-headline font-extrabold text-on-surface leading-tight tracking-tight">The Lore</h1>
+<p class="text-on-surface-variant font-headline text-lg md:text-xl font-medium pt-1 opacity-90">10 Year Old Single Malt</p>
+</section>
+<!-- Spirit Information Section -->
+<section class="max-w-2xl mx-auto space-y-8">
+<!-- Rating & Date -->
+<div class="flex items-center gap-4 py-3 px-5 glass-card rounded-xl w-full justify-center">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold text-base">4.8</span>
+</div>
+<div class="w-px h-4 bg-outline-variant/30"></div>
+<div class="text-on-surface-variant text-[11px] font-bold uppercase tracking-wider">
+                    March 20, 2026
+                </div>
+</div>
+<!-- Specifications -->
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="text-primary font-label text-[10px] font-bold uppercase tracking-[0.15em] shrink-0">Distillery</span>
+<span class="h-px flex-1 bg-outline-variant/30"></span>
+<span class="text-on-surface text-sm font-medium">Laphroaig Distillery</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-primary font-label text-[10px] font-bold uppercase tracking-[0.15em] shrink-0">Category</span>
+<span class="h-px flex-1 bg-outline-variant/30"></span>
+<span class="text-on-surface text-sm font-medium">Whiskey &gt; Scotch &gt; Single Malt</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-primary font-label text-[10px] font-bold uppercase tracking-[0.15em] shrink-0">Origin</span>
+<span class="h-px flex-1 bg-outline-variant/30"></span>
+<span class="text-on-surface text-sm font-medium">Scotland &gt; Islay</span>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<div class="bg-surface-container-highest/30 p-4 rounded-2xl border border-outline-variant/30">
+<p class="text-primary text-[10px] font-bold uppercase tracking-wider mb-1">ABV</p>
+<p class="text-lg font-bold text-on-surface">43.0%</p>
+</div>
+<div class="bg-surface-container-highest/30 p-4 rounded-2xl border border-outline-variant/30">
+<p class="text-primary text-[10px] font-bold uppercase tracking-wider mb-1">VOLUME</p>
+<p class="text-lg font-bold text-on-surface">700ml</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Tasting Experience Section -->
+<section class="max-w-4xl mx-auto">
+<div class="glass-card p-8 rounded-[2rem] space-y-4 border-primary/20">
+<h4 class="text-primary text-[10px] font-bold uppercase tracking-[0.2rem]">Tasting Experience</h4>
+<p class="text-on-surface font-headline font-bold text-xl leading-snug">
+                    Deep mahogany color, complex aroma of smoke and sea spray. A classic Islay punch that evolves into salted caramel.
+                </p>
+<p class="text-on-surface-variant font-body text-sm leading-relaxed pt-2">
+                    The entry is oily and viscous, immediately coating the tongue in a layer of medicinal peat and char. Middle notes bring a surprising sweetness—think grilled peaches and brown sugar—before the long, lingering finish of iodine and white pepper takes over.
+                </p>
+</div>
+</section>
+<!-- Flavor Profile Section -->
+<section class="max-w-4xl mx-auto">
+<div class="glass-card p-8 md:p-10 rounded-[2.5rem] relative overflow-hidden group">
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-2xl font-headline font-extrabold text-on-surface">Flavor Profile</h3>
+<p class="text-on-surface-variant text-sm">Complex smoke and sea spray notes</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40 group-hover:opacity-100 transition-opacity" data-icon="insights">insights</span>
+</div>
+<div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+<!-- Hexagonal Radar Visual -->
+<div class="relative flex items-center justify-center shrink-0 w-36 h-36 md:w-56 md:h-56">
+<div class="absolute inset-0 hexagon-mask bg-outline-variant/10 scale-100"></div>
+<div class="absolute inset-0 hexagon-mask bg-outline-variant/10 scale-75"></div>
+<div class="absolute inset-0 hexagon-mask bg-outline-variant/10 scale-50"></div>
+<!-- Current Radar Plot -->
+<div class="absolute inset-0 hexagon-mask bg-primary/30 border-2 border-primary" style="clip-path: polygon(50% 5%, 85% 40%, 80% 80%, 50% 95%, 20% 80%, 15% 40%);"></div>
+<!-- Axis Labels -->
+<span class="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-extrabold text-primary uppercase tracking-widest">Peat</span>
+<span class="absolute top-4 -right-12 text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Floral</span>
+<span class="absolute bottom-4 -right-12 text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Woody</span>
+<span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Sweet</span>
+<span class="absolute bottom-4 -left-12 text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Spicy</span>
+<span class="absolute top-4 -left-12 text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-widest">Fruity</span>
+</div>
+<!-- Numeric Data Grid -->
+<div class="grid grid-cols-2 gap-x-12 gap-y-6 flex-1 w-full">
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(233,193,118,0.5)]"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-primary tracking-[0.15em] mb-0.5">Peat</span>
+<span class="text-lg font-bold text-on-surface">9.5</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Floral</span>
+<span class="text-lg font-bold text-on-surface">2.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Fruity</span>
+<span class="text-lg font-bold text-on-surface">4.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Woody</span>
+<span class="text-lg font-bold text-on-surface">6.0</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Spicy</span>
+<span class="text-lg font-bold text-on-surface">4.5</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/40"></span>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-on-surface-variant/70 tracking-[0.15em] mb-0.5">Sweet</span>
+<span class="text-lg font-bold text-on-surface">3.5</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Button -->
+<div class="fixed bottom-0 left-0 w-full z-50 p-6 bg-gradient-to-t from-[#131313] via-[#131313]/90 to-transparent">
+<button class="w-full h-14 bg-[#e9c176] rounded-xl flex items-center justify-center shadow-2xl shadow-primary/30 active:scale-[0.98] transition-all duration-200">
+<span class="font-headline font-black uppercase tracking-widest text-sm text-[#261900]">
+                Edit Note
+            </span>
+</button>
+</div>
+</body></html>

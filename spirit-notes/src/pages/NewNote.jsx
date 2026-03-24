@@ -468,26 +468,18 @@ const NewNote = () => {
               <div className={styles.specBox}>
                 <p className={styles.specLabel}>ABV</p>
                 <div className={styles.specValueRow}>
-                  <input 
-                    type="number" step="0.1"
-                    name="abv" value={formData.abv} onChange={handleChange}
-                    className={`${styles.specInput} ${(hasSpirit && !isEdit) ? styles.readOnly : ''}`}
-                    placeholder="0.0"
-                    readOnly={hasSpirit && !isEdit}
-                  />
+                  <span className={styles.specInput}>
+                    {formData.abv || "0.0"}
+                  </span>
                   <span>%</span>
                 </div>
               </div>
               <div className={styles.specBox}>
                 <p className={styles.specLabel}>Volume</p>
                 <div className={styles.specValueRow}>
-                  <input 
-                    type="number"
-                    name="volume" value={formData.volume} onChange={handleChange}
-                    className={`${styles.specInput} ${(hasSpirit && !isEdit) ? styles.readOnly : ''}`}
-                    placeholder="0"
-                    readOnly={hasSpirit && !isEdit}
-                  />
+                  <span className={styles.specInput}>
+                    {formData.volume || "0"}
+                  </span>
                   <span>ml</span>
                 </div>
               </div>

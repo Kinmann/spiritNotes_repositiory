@@ -1,23 +1,550 @@
 @use "@/styles/variables" as *;
 
+.container {
+  padding-top: 2rem;
+  padding-bottom: 0rem;
+  max-width: 80rem; // max-w-7xl
+  margin: 0 auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  min-height: 100vh;
+  background-color: $background;
+  color: $on-surface;
+  font-family: $font-sans;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Hero Section
+.heroSection {
+  margin-bottom: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .heroHeader {
+    text-align: left;
+    
+    .subtitle {
+      display: block;
+      color: $primary;
+      font-size: 0.625rem; // 10px
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .title {
+      font-family: $font-heading;
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      margin: 0;
+      
+      .primaryText {
+        color: $primary;
+      }
+
+      @media (max-width: 640px) {
+        font-size: 2.5rem;
+      }
+    }
+  }
+}
+
+.personaCard {
+  @include glass-card;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-color: rgba($primary, 0.1);
+
+  .personaBackgroundIcon {
+    position: absolute;
+    right: -1rem;
+    top: -1rem;
+    opacity: 0.1;
+    
+    span {
+      font-size: 8rem;
+      color: $on-surface;
+    }
+  }
+
+  .personaContent {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .personaLabel {
+    color: $primary;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+
+  .personaDescription {
+    h3 {
+      font-family: $font-heading;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: $on-surface;
+      margin: 0;
+    }
+
+    p {
+      color: $on-surface-variant;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      max-width: 100%;
+      width: 480px;
+      margin-top: 0.25rem;
+    }
+  }
+
+  .personaLink {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: $primary;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-top: 0.5rem;
+
+    span {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  .statItem {
+    background-color: rgba($surface-container-highest, 0.3);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid rgba($outline-variant, 0.3);
+    text-align: center;
+
+    .statLabel {
+      color: $primary;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .statValue {
+      font-family: $font-heading;
+      font-size: 1.875rem;
+      font-weight: 900;
+      color: $on-surface;
+      margin: 0;
+    }
+  }
+}
+
+// Palate Distribution Section
+.radarSection {
+  max-width: 56rem; // max-w-4xl
+  margin: 0 auto;
+  margin-bottom: 5rem;
+}
+
+.palateCard {
+  @include glass-card;
+  padding: 2rem;
+  border-radius: 2.5rem;
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: 768px) {
+    padding: 2.5rem;
+  }
+
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+
+    .cardTitleGroup {
+      h3 {
+        font-family: $font-heading;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: $on-surface;
+        margin: 0;
+      }
+      p {
+        color: $on-surface-variant;
+        font-size: 0.875rem;
+        margin: 0.25rem 0 0 0;
+      }
+    }
+
+    .headerIcon {
+      color: $primary-container;
+      opacity: 0.4;
+      font-size: 1.5rem;
+    }
+  }
+}
+
+.radarContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 4rem;
+  }
+
+  .radarWrapper {
+    flex-shrink: 0;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    // Custom Radar Chart styling for Recharts
+    :global(.recharts-polar-grid-concentric-polygon) {
+      stroke: rgba($outline-variant, 0.3);
+    }
+    :global(.recharts-polar-angle-axis-tick-value) {
+      font-size: 10px;
+      font-weight: 700;
+      fill: rgba($on-surface-variant, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  }
+
+  .markersGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    flex: 1;
+    width: 100%;
+  }
+}
+
+.markerItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+
+  .indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: $outline-variant;
+    
+    &.active {
+      background-color: $primary;
+      box-shadow: 0 0 8px rgba($primary, 0.5);
+    }
+  }
+
+  .markerInfo {
+    display: flex;
+    flex-direction: column;
+    
+    .markerLabel {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: rgba($on-surface-variant, 0.7);
+      letter-spacing: 0.15em;
+      
+      &.active {
+        color: $primary;
+      }
+    }
+
+    .markerValue {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: $on-surface;
+    }
+  }
+}
+
+// Recommendation Section
+.recommendationSection {
+  margin-bottom: 3rem;
+
+  .sectionHeader {
+    border-bottom: 1px solid rgba($outline-variant, 0.2);
+    padding-bottom: 0;
+    margin-bottom: 2rem;
+
+    .subtitle {
+      display: block;
+      color: $primary;
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 {
+      font-family: $font-heading;
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: $on-surface;
+      margin: 0;
+    }
+  }
+}
+
+.carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 2rem;
+  margin: 0 -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.recommendationCard {
+  width: 280px;
+  min-width: 280px;
+  scroll-snap-align: center;
+  @include stat-card;
+  flex-direction: column;
+  height: auto;
+  padding: 20px;
+  gap: 24px;
+  align-items: stretch;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-8px);
+    border-color: rgba($primary, 0.2);
+
+    .imageWrapper img {
+      transform: scale(1.05);
+    }
+  }
+
+  .imageWrapper {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: $surface-container-high;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .matchBadge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background-color: rgba($surface-container-lowest, 0.8);
+      backdrop-filter: blur(8px);
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      border: 1px solid rgba($primary, 0.3);
+      z-index: 2;
+      
+      span {
+        font-size: 8px;
+        font-weight: 700;
+        color: $primary;
+      }
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba($background, 0.4), transparent);
+    }
+  }
+
+  .cardContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    overflow: hidden;
+
+    .headerGroup {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      .titles {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .distillery {
+      display: block;
+      color: $primary;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      opacity: 0.8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spiritName {
+      font-family: $font-heading;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin: 0;
+      color: $on-surface;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .quickAdd {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: $primary;
+      color: $on-primary;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+
+      span { font-size: 18px; font-weight: 600; }
+    }
+
+    .specList {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .specItem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+
+      .specLabel {
+        font-size: 10px;
+        font-weight: 800;
+        color: $primary;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .specDivider {
+        display: none; // Hiding divider as we use justify-content: space-between
+      }
+
+      .specValue {
+        font-size: 10px;
+        color: $on-surface-variant;
+        font-weight: 500;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+      }
+    }
+  }
+}
+
+// Global utility for hide-scrollbar
+:global(.hide-scrollbar) {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+// Loading state
 .loadingScreen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  gap: 1rem;
+  min-height: 100vh;
+  gap: 1.5rem;
+  background-color: $background;
 
   .loadingIcon {
-    font-size: 2.25rem;
-    color: var(--primary);
-    animation: spin 1s linear infinite;
+    font-size: 3rem;
+    color: $primary;
+    animation: spin 1.5s linear infinite;
   }
 
   p {
-    color: var(--on-surface-variant);
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: $on-surface-variant;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
   }
 }
 
@@ -26,389 +553,60 @@
   to { transform: rotate(360deg); }
 }
 
-.container {
-  padding-bottom: 8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem; // space-y-10
-  animation: fadeIn 0.7s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.topSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding-top: 1rem;
-}
-
-.personaBadge {
-  margin-bottom: 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1.5rem;
-  border-radius: 9999px;
-  background-color: rgba(255, 198, 62, 0.1);
-  border: 1px solid rgba(255, 198, 62, 0.2);
-  box-shadow: 0 0 20px rgba(242, 202, 80, 0.1);
-
-  .badgeIcon {
-    color: var(--primary);
-    margin-right: 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .badgeText {
-    color: var(--primary);
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    font-size: 0.625rem; // 10px
-    text-transform: uppercase;
-  }
-}
-
-.title {
-  font-size: 1.875rem;
-  font-family: var(--font-heading);
-  color: var(--on-surface);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.025em;
-
-  @media (min-width: 768px) {
-    font-size: 3rem;
-  }
-}
-
-.description {
-  color: var(--on-surface-variant);
-  font-size: 0.875rem;
-  max-width: 20rem; // max-w-xs
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.625;
-}
-
-.radarSection {
-  position: relative;
-  width: 100%;
-  max-width: 28rem; // max-w-md
-  margin-left: auto;
-  margin-right: auto;
-  padding: 2rem 0;
-}
-
+// Unlock state
 .lockedDNA {
-  position: relative;
-}
-
-.placeholderCircle {
-  background-color: rgba(53, 52, 56, 0.2);
-  border-radius: 9999px;
-  aspect-ratio: 1 / 1;
-  filter: blur(8px);
-  opacity: 0.3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .ring {
-    width: 100%;
-    height: 100%;
-    border: 2px solid rgba(255, 198, 62, 0.2);
-    border-radius: 9999px;
-  }
-}
-
-.lockOverlay {
-  position: absolute;
-  inset: 0;
+  @include glass-card;
+  padding: 3rem 2rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 1.5rem;
-  background-color: rgba(19, 19, 22, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 1.5rem;
+  border-radius: 2.5rem;
 
-  .lockIconBox {
-    width: 4rem;
-    height: 4rem;
+  .lockIconWrapper {
+    width: 5rem;
+    height: 5rem;
     border-radius: 9999px;
-    background-color: var(--surface-variant);
+    background-color: $surface-variant;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1rem;
-    border: 1px solid rgba(255, 198, 62, 0.2);
+    border: 1px solid rgba($primary, 0.2);
 
     .lockIcon {
-      font-size: 1.875rem;
-      color: var(--primary);
+      font-size: 2.5rem;
+      color: $primary;
     }
   }
 
   h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--on-surface);
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
   }
 
   p {
-    font-size: 0.75rem;
-    color: var(--on-surface-variant);
-    margin-bottom: 1.5rem;
-    max-width: 200px;
+    font-size: 0.875rem;
+    color: $on-surface-variant;
+    max-width: 18rem;
+    line-height: 1.6;
+    margin: 0;
   }
 
-  .unlockLink {
-    padding: 0.75rem 2rem;
-    background-color: var(--primary);
-    color: var(--on-primary);
+  .unlockButton {
+    @include amber-gradient;
+    color: $on-primary;
+    padding: 1rem 2.5rem;
     border-radius: 9999px;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.875rem;
     text-decoration: none;
-    transition: all 0.3s;
-    box-shadow: 0 10px 15px -3px rgba(255, 198, 62, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
 
     &:active {
       transform: scale(0.95);
-    }
-  }
-}
-
-.unlockedDNA {
-  position: relative;
-  background-color: rgba(53, 52, 56, 0.1);
-  border-radius: 9999px;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(208, 197, 175, 0.05);
-
-  .decorativeCircle1 {
-    position: absolute;
-    inset: 1rem;
-    border: 1px solid rgba(208, 197, 175, 0.1);
-    border-radius: 9999px;
-    opacity: 0.2;
-  }
-
-  .decorativeCircle2 {
-    position: absolute;
-    inset: 4rem;
-    border: 1px solid rgba(208, 197, 175, 0.1);
-    border-radius: 9999px;
-    opacity: 0.2;
-  }
-
-  .canvasBox {
-    position: absolute;
-    inset: 0;
-    padding: 1rem;
-  }
-
-  .centralIcon {
-    position: absolute;
-    z-index: 10;
-    width: 4rem;
-    height: 4rem;
-    border-radius: 9999px;
-    background-color: rgba(19, 19, 22, 0.8);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 198, 62, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-    .dnaIcon {
-      font-size: 1.875rem;
-      color: var(--primary);
-    }
-  }
-
-  .refreshButton {
-    position: absolute;
-    bottom: -0.5rem;
-    right: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 9999px;
-    background-color: var(--surface-variant);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--on-surface-variant);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    cursor: pointer;
-    transition: all 0.5s;
-
-    &:active {
-      transform: rotate(180deg);
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-    }
-
-    .refreshIcon {
-      font-size: 1.25rem;
-    }
-  }
-}
-
-.markersSection {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem; // space-y-8
-  padding: 0 0.5rem;
-
-  h3 {
-    font-size: 0.6875rem; // 11px
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--primary);
-    text-transform: uppercase;
-    margin-left: 0.25rem;
-  }
-}
-
-.markersGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  column-gap: 3rem;
-  row-gap: 2rem;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.markerItem {
-  display: flex;
-  flex-direction: column;
-}
-
-.markerHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 0.5rem;
-
-  .markerInfo {
-    .markerSubject {
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: var(--on-surface);
-      display: block;
-      letter-spacing: 0.025em;
-    }
-    .markerStatus {
-      font-size: 0.625rem;
-      color: var(--on-surface-variant);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-  }
-
-  .markerValue {
-    font-family: var(--font-heading);
-    font-size: 1.125rem;
-    color: var(--primary);
-    font-weight: 500;
-    letter-spacing: -0.025em;
-  }
-}
-
-.track {
-  height: 0.375rem;
-  width: 100%;
-  background-color: var(--surface-variant);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress {
-  height: 100%;
-  border-radius: 9999px;
-  background: linear-gradient(to right, var(--primary), var(--primary-container));
-  transition: all 1s ease-out;
-}
-
-.teaserCard {
-  background-color: rgba(53, 52, 56, 0.2);
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  border: 1px solid rgba(208, 197, 175, 0.05);
-
-  .teaserHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-
-    h3 {
-      font-size: 1.25rem;
-      font-family: var(--font-heading);
-      color: var(--on-surface);
-      margin: 0;
-    }
-
-    .seeAllLink {
-      font-size: 0.6875rem;
-      font-weight: 700;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      text-decoration: none;
-    }
-  }
-}
-
-.teaserContent {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  .bottleIconBox {
-    width: 4rem;
-    height: 5rem;
-    background-color: var(--surface-variant);
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-
-    .bottleIcon {
-      color: rgba(208, 197, 175, 0.2);
-      font-size: 1.875rem;
-    }
-  }
-
-  .teaserText {
-    h4 {
-      font-weight: 700;
-      color: var(--on-surface);
-      margin: 0 0 0.25rem 0;
-    }
-    p {
-      font-size: 0.75rem;
-      color: var(--on-surface-variant);
-      margin: 0;
     }
   }
 }
