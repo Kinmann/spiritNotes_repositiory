@@ -307,8 +307,6 @@
   margin-bottom: 3rem;
 
   .sectionHeader {
-    border-bottom: 1px solid rgba($outline-variant, 0.2);
-    padding-bottom: 0;
     margin-bottom: 2rem;
 
     .subtitle {
@@ -398,7 +396,7 @@
       z-index: 2;
       
       span {
-        font-size: 8px;
+        font-size: 12px;
         font-weight: 700;
         color: $primary;
       }
@@ -416,7 +414,8 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: 0;
+    padding-top: 1rem;
     overflow: hidden;
 
     .headerGroup {
@@ -459,22 +458,6 @@
       overflow: hidden;
     }
 
-    .quickAdd {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: $primary;
-      color: $on-primary;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-
-      span { font-size: 18px; font-weight: 600; }
-    }
 
     .specList {
       display: flex;

@@ -35,7 +35,7 @@ const Navbar = () => {
           <img 
             alt="Spirit Notes Logo" 
             className={styles.logoImg} 
-            src="/logo.png"
+            src="/logo.png?v=2"
           />
         </Link>
       </div>

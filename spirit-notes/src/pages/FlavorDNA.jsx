@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { auth, db } from '@/firebase';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
-import { updateFlavorDNA } from '@/api/flavorDna';
+import { updateFlavorDNA, getPersona } from '@/api/flavorDna';
 import { getRecommendations } from '@/api/recommendations';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
@@ -40,10 +40,10 @@ const FlavorDNA = () => {
         }
       }
 
+      // 2. Fetch Taste Persona
       try {
-        const res = await fetch(`http://localhost:5000/api/persona/${uid}`, { method: 'POST' });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await getPersona(uid);
+        if (data && data.persona) {
           setPersona(data.persona);
         } else {
           setPersona({
@@ -52,6 +52,7 @@ const FlavorDNA = () => {
           });
         }
       } catch (e) {
+        console.error('Persona fetch failed:', e);
         setPersona({
           title: 'Oak & Smoke Master',
           description: 'A deep biological mapping of your olfactory and palate preferences.'
@@ -229,27 +230,18 @@ const FlavorDNA = () => {
                       <span className={styles.distillery}>{rec.distillery || "Distillery Unknown"}</span>
                       <h5 className={styles.spiritName}>{rec.name}</h5>
                     </div>
-                    <button 
-                      className={styles.quickAdd} 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate('/notes/new', { state: { spirit: rec } });
-                      }}
-                    >
-                      <span className="material-symbols-outlined">add</span>
-                    </button>
                   </div>
 
                   <div className={styles.specList}>
                     <div className={styles.specItem}>
                       <span className={styles.specLabel}>Category</span>
                       <span className={styles.specDivider}></span>
-                      <span className={styles.specValue}>{rec.category?.split(' > ')[0] || 'Spirit'}</span>
+                      <span className={styles.specValue}>{rec.category || 'Spirit'}</span>
                     </div>
                     <div className={styles.specItem}>
                       <span className={styles.specLabel}>Origin</span>
                       <span className={styles.specDivider}></span>
-                      <span className={styles.specValue}>{rec.origin?.split(' > ')[0] || 'Unknown'}</span>
+                      <span className={styles.specValue}>{rec.origin || 'Unknown'}</span>
                     </div>
                   </div>
                 </div>

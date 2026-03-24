@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start:dev": "concurrently \"npm run emulate\" \"npm run dev\"",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "emulate": "npx firebase-tools emulators:start --export-on-exit=./emulator_data",
+    "deploy:all": "npm run build && npx firebase-tools deploy --project antigravity-dd7c2"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
@@ -28,6 +31,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.16.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",

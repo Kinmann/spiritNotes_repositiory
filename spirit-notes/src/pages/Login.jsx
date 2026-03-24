@@ -54,7 +54,7 @@ const Login = () => {
             <div className={styles.logoSection}>
               <div className={styles.logoContainer}>
                 <img 
-                  src="/logo.png" 
+                  src="/logo.png?v=2" 
                   alt="Spirit Notes Gold Logo" 
                 />
               </div>
@@ -116,7 +116,7 @@ const Login = () => {
             <div className={styles.brandSection}>
               <div className={styles.logoWrapper}>
                 <img 
-                  src="/logo.png" 
+                  src="/logo.png?v=2" 
                   alt="Spirit Notes Gold Logo" 
                 />
               </div>
