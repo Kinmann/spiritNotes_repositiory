@@ -162,7 +162,7 @@ const NoteDetail = () => {
               <span className={styles.label}>Origin</span>
               <span className={styles.line}></span>
               <span className={styles.value}>
-                {displayNote.locationHierarchy?.join(' > ') || '-'}
+                {displayNote.locationHierarchy?.join(' > ') || displayNote.origin || '-'}
               </span>
             </div>
 

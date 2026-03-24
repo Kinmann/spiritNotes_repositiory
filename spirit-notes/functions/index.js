@@ -70,14 +70,17 @@ const calculateCosineSimilarity = (vecA, vecB) => {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 };
 
-const buildHierarchy = (id, dataMap) => {
+const getHierarchy = (id, dataMap) => {
   let currentId = id;
   let path = [];
   while (currentId && dataMap[currentId]) {
     path.unshift(dataMap[currentId].name);
     currentId = dataMap[currentId].parentId;
   }
-  return path.join(' > ');
+  return {
+    display: path.join(' > '),
+    path: path
+  };
 };
 
 const getEnrichmentMaps = async (db) => {
@@ -88,14 +91,14 @@ const getEnrichmentMaps = async (db) => {
   const catsDocData = {};
   catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
   catsSnapshot.forEach(doc => {
-    categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
+    categoriesMap[doc.id] = getHierarchy(doc.id, catsDocData);
   });
 
   const locsSnapshot = await db.collection('locations').get();
   const locsDocData = {};
   locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
   locsSnapshot.forEach(doc => {
-    locationsMap[doc.id] = buildHierarchy(doc.id, locsDocData);
+    locationsMap[doc.id] = getHierarchy(doc.id, locsDocData);
   });
   
   return { categoriesMap, locationsMap };
@@ -103,8 +106,10 @@ const getEnrichmentMaps = async (db) => {
 
 const enrichSpirit = (s, categoriesMap, locationsMap) => ({
   ...s,
-  category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
-  origin: (s.locationId && locationsMap[s.locationId]) || s.origin || '스코틀랜드 > 스페이사이드'
+  category: (s.categoryId && categoriesMap[s.categoryId]?.display) || s.category || '위스키 > 스카치 > 싱글몰트',
+  categoryHierarchy: (s.categoryId && categoriesMap[s.categoryId]?.path) || s.categoryHierarchy || [],
+  origin: (s.locationId && locationsMap[s.locationId]?.display) || s.origin || '스코틀랜드 > 스페이사이드',
+  locationHierarchy: (s.locationId && locationsMap[s.locationId]?.path) || s.locationHierarchy || []
 });
 
 // --- API Routes ---
@@ -182,6 +187,9 @@ router.get('/notes/:userId', async (req, res) => {
         name: spiritInfo?.name || noteData.name,
         distillery: spiritInfo?.distillery || noteData.distillery,
         category: spiritInfo?.category || noteData.category,
+        categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy,
+        origin: spiritInfo?.origin || noteData.origin,
+        locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy,
         abv: spiritInfo?.abv || noteData.abv,
         volume: spiritInfo?.volume || noteData.volume,
         image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
@@ -216,6 +224,9 @@ router.get('/notes/:userId/:noteId', async (req, res) => {
       name: spiritInfo?.name || noteData.name,
       distillery: spiritInfo?.distillery || noteData.distillery,
       category: spiritInfo?.category || noteData.category,
+      categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy,
+      origin: spiritInfo?.origin || noteData.origin,
+      locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy,
       abv: spiritInfo?.abv || noteData.abv,
       volume: spiritInfo?.volume || noteData.volume,
       image: noteData.imageUrl || spiritInfo?.image || noteData.image || null

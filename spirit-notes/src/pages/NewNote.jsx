@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { db, auth, storage } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDocs, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
 import { getNoteById } from '@/api/notes';
