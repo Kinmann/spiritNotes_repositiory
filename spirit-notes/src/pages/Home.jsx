@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getRecommendations } from '@/api/recommendations';
+import { getUserNotes } from '@/api/notes';
 import { auth, db } from '@/firebase';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
@@ -55,22 +56,16 @@ const Home = () => {
       }
 
       if (uid !== 'guest') {
-        const notesRef = collection(db, 'users', uid, 'notes');
-        const q = query(notesRef, orderBy('createdAt', 'desc'), limit(6));
-        const notesSnap = await getDocs(q);
-        const fetchedNotes = [];
-        notesSnap.forEach(docSnap => {
-          const d = docSnap.data();
-          fetchedNotes.push({
-            id: docSnap.id,
-            spiritName: d.name,
-            rating: d.rating,
-            date: d.createdAt?.toDate() || new Date(),
-            tags: Object.entries(d.flavor_axes || {}).filter(([,v]) => v > 6).map(([k]) => k),
-            image: d.image || null,
-            ...d
-          });
-        });
+        const data = await getUserNotes(uid);
+        const fetchedNotes = data.slice(0, 6).map(note => ({
+          ...note,
+          id: note.id,
+          spiritName: note.name,
+          rating: note.rating,
+          date: note.createdAt?._seconds ? new Date(note.createdAt._seconds * 1000) : (note.createdAt ? new Date(note.createdAt) : new Date()),
+          tags: Object.entries(note.flavor_axes || {}).filter(([,v]) => v > 6).map(([k]) => k),
+          image: note.image || note.imageUrl || null,
+        }));
         setRecentNotes(fetchedNotes);
       }
 
@@ -97,7 +92,7 @@ const Home = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [auth.currentUser]);
 
   return (
     <div className={styles.container}>

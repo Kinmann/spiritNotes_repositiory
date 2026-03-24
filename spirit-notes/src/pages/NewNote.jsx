@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { db, auth, storage } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
+import { getNoteById } from '@/api/notes';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './NewNote.module.scss';
 
@@ -34,7 +35,8 @@ const NewNote = () => {
     woody: 0,
     spicy: 0,
     sweet: 0,
-    comment: ''
+    comment: '',
+    spirit_id: ''
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,14 +52,12 @@ const NewNote = () => {
     const fetchNote = async () => {
       if (!id || !auth.currentUser) return;
       try {
-        const docRef = doc(db, 'users', auth.currentUser.uid, 'notes', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        setLoading(true);
+        const data = await getNoteById(auth.currentUser.uid, id);
+        if (data) {
           setFormData({
             ...data,
             title: data.title || '',
-            // Ensure values are numbers for range inputs
             peat: data.flavor_axes?.peat || 0,
             floral: data.flavor_axes?.floral || 0,
             fruity: data.flavor_axes?.fruity || 0,
@@ -69,13 +69,15 @@ const NewNote = () => {
             abv: data.abv || '',
             volume: data.volume || ''
           });
-          if (data.imageUrl) {
-            setImagePreview(data.imageUrl);
+          if (data.imageUrl || data.image) {
+            setImagePreview(data.imageUrl || data.image);
           }
         }
       } catch (error) {
         console.error("Error fetching note for edit:", error);
         toast.error("노트 데이터를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -248,18 +250,9 @@ const NewNote = () => {
 
       const noteData = {
         title: formData.title || '',
-        name: formData.name,
-        distillery: formData.distillery,
-        category: formData.category,
-        categoryId: formData.categoryId || null,
-        locationId: formData.locationId || null,
-        categoryHierarchy: formData.categoryHierarchy || [],
-        locationHierarchy: formData.locationHierarchy || [],
-        abv: formData.abv || null,
-        volume: formData.volume || null,
         rating: formData.rating,
         comment: formData.comment,
-        imageUrl: imageUrl || imagePreview || null, // Keep existing image if no new one
+        imageUrl: imageUrl || imagePreview || null, 
         flavor_axes: {
           peat: formData.peat,
           floral: formData.floral,
@@ -276,7 +269,7 @@ const NewNote = () => {
       if (isEdit) {
         await updateDoc(doc(db, 'users', uid, 'notes', id), noteData);
       } else {
-        if (!formData.spirit_id) {
+        if (!noteData.spirit_id) {
           toast.error('주류를 검색하여 선택해주세요.');
           setLoading(false);
           return;

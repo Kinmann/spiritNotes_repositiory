@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db, auth } from '@/firebase';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { auth } from '@/firebase';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
+import { getNoteById } from '@/api/notes';
 import { toast } from 'sonner';
 import styles from './NoteDetail.module.scss';
 
@@ -13,34 +13,36 @@ const NoteDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNote = async () => {
+    const fetchNoteByApi = async () => {
       if (!auth.currentUser) return;
       try {
-        const docRef = doc(db, 'users', auth.currentUser.uid, 'notes', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setNote({ id: docSnap.id, ...docSnap.data() });
+        setLoading(true);
+        const data = await getNoteById(auth.currentUser.uid, id);
+        if (data) {
+          setNote(data);
         } else {
-          // Temporarily navigate if no note, but for UI work we might want a sample
-          // navigate('/collection');
+          toast.error('노트를 찾을 수 없습니다.');
+          navigate('/collection');
         }
       } catch (error) {
         console.error("Error fetching document:", error);
+        toast.error('노트를 불러오는 중 오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
     };
-    fetchNote();
+    fetchNoteByApi();
   }, [id, navigate]);
 
   const handleDelete = async () => {
     if (!auth.currentUser || !note) return;
     if (!confirm('이 노트를 삭제하시겠습니까?')) return;
     try {
-      await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'notes', note.id));
+      await deleteNote(auth.currentUser.uid, note.id);
       toast.success('노트가 삭제되었습니다.');
       navigate('/collection');
-    } catch {
+    } catch (error) {
+      console.error('Error deleting note:', error);
       toast.error('삭제 중 오류 발생');
     }
   };
@@ -84,9 +86,18 @@ const NoteDetail = () => {
   }));
 
   // Helper to format date
-  const formattedDate = displayNote.createdAt?.toDate 
-    ? displayNote.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : "Recently";
+  const getNoteDate = () => {
+    if (displayNote.createdAt?._seconds) return new Date(displayNote.createdAt._seconds * 1000);
+    if (displayNote.createdAt?.toDate) return displayNote.createdAt.toDate();
+    if (displayNote.createdAt) return new Date(displayNote.createdAt);
+    return new Date();
+  };
+
+  const formattedDate = getNoteDate().toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
 
   return (
     <div className={styles.noteDetailPage}>

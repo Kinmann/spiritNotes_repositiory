@@ -228,6 +228,121 @@ app.post('/api/flavor-dna/:userId', async (req, res) => {
 });
 
 /**
+ * 사용자의 모든 테이스팅 노트 조회 API (Spirit 정보 Join)
+ */
+app.get('/api/notes/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
+      .orderBy('createdAt', 'desc')
+      .get();
+    
+    if (notesSnapshot.empty) {
+      return res.json({ success: true, notes: [] });
+    }
+
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const spiritsSnapshot = await db.collection('spirits').get();
+    const spiritsMap = {};
+    spiritsSnapshot.forEach(doc => {
+      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+    });
+    console.log(`[DEBUG] spiritsMap size: ${Object.keys(spiritsMap).length}`);
+    console.log(`[DEBUG] First 5 keys: ${Object.keys(spiritsMap).slice(0, 5).join(', ')}`);
+
+    const notes = notesSnapshot.docs.map(doc => {
+      const noteData = doc.data();
+      const spiritId = noteData.spirit_id;
+      const spiritInfo = spiritId ? spiritsMap[spiritId] : null;
+
+      // Spirit 정보가 있으면 최신 정보로 덮어쓰기 (동기화)
+      return {
+        id: doc.id,
+        ...noteData,
+        // Spirit metadata fields prioritized from the spirits collection
+        name: spiritInfo?.name || noteData.name,
+        distillery: spiritInfo?.distillery || noteData.distillery,
+        category: spiritInfo?.category || noteData.category,
+        categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy || [],
+        locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy || [],
+        abv: spiritInfo?.abv || noteData.abv,
+        volume: spiritInfo?.volume || noteData.volume,
+        // image는 spirit의 기본 이미지를 사용하되, 노트에 저장된 imageUrl(사용자 사진)이 있으면 그것을 우선함
+        image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
+      };
+    });
+
+    res.json({ success: true, notes });
+  } catch (error) {
+    console.error('Error fetching joined notes:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * 개별 테이스팅 노트 상세 조회 API (Spirit 정보 Join)
+ */
+app.get('/api/notes/:userId/:noteId', async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
+    if (!noteDoc.exists) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const noteData = noteDoc.data();
+    const spiritId = noteData.spirit_id;
+    
+    let spiritInfo = null;
+    if (spiritId) {
+      const spiritDoc = await db.collection('spirits').doc(spiritId).get();
+      if (spiritDoc.exists) {
+        const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+      }
+    }
+
+    const enrichedNote = {
+      id: noteDoc.id,
+      ...noteData,
+      name: spiritInfo?.name || noteData.name,
+      distillery: spiritInfo?.distillery || noteData.distillery,
+      category: spiritInfo?.category || noteData.category,
+      categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy || [],
+      locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy || [],
+      abv: spiritInfo?.abv || noteData.abv,
+      volume: spiritInfo?.volume || noteData.volume,
+      image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
+    };
+
+    res.json({ success: true, note: enrichedNote });
+  } catch (error) {
+    console.error('Error fetching joined note detail:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * 노트 삭제 API
+ */
+app.delete('/api/notes/:userId/:noteId', async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    if (!db) return res.status(500).json({ error: 'Database not initialized' });
+
+    await db.collection('users').doc(userId).collection('notes').doc(noteId).delete();
+    res.json({ success: true, message: 'Note deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * Gemini 기반 추천 생성 API
  */
 app.post('/api/recommendations/:userId', async (req, res) => {

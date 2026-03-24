@@ -261,15 +261,15 @@
       letter-spacing: 0.1em;
       margin-bottom: 4px;
     }
+  }
 
-    .bentoName {
-      font-family: var(--font-heading);
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--on-surface);
-      line-height: 1.2;
-      margin: 0;
-    }
+  .bentoName {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--on-surface);
+    line-height: 1.2;
+    margin: 0;
   }
 
   .bentoMeta {

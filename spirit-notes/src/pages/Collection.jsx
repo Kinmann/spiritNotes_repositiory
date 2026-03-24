@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { db, auth } from '@/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { auth } from '@/firebase';
 import { useNavigate } from 'react-router-dom';
 import TastingNoteCard from '@/components/common/TastingNoteCard';
+import { getUserNotes } from '@/api/notes';
 import styles from './Collection.module.scss';
 
 const Collection = () => {
@@ -13,27 +13,31 @@ const Collection = () => {
   const [sortBy, setSortBy] = useState('latest'); // 'latest' or 'rating'
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchNotesByApi = async () => {
       if (!auth.currentUser) return;
       try {
-        const q = query(
-          collection(db, 'users', auth.currentUser.uid, 'notes'),
-          orderBy(sortBy === 'latest' ? 'createdAt' : 'rating', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        setNotes(querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            spiritName: data.name,
-            rating: data.rating,
-            date: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date()),
-            image: data.image || null,
-            ...data
-          };
-        }));
+        setLoading(true);
+        const data = await getUserNotes(auth.currentUser.uid);
+        
+        // Sorting logic in frontend
+        const sortedData = [...data].sort((a, b) => {
+          if (sortBy === 'latest') {
+            const dateA = a.createdAt?._seconds || new Date(a.createdAt).getTime() || 0;
+            const dateB = b.createdAt?._seconds || new Date(b.createdAt).getTime() || 0;
+            return dateB - dateA;
+          } else {
+            return (b.rating || 0) - (a.rating || 0);
+          }
+        });
 
-        // Spirits data fetching removed as Catalog tab is deleted
+        setNotes(sortedData.map(note => ({
+          ...note,
+          id: note.id,
+          spiritName: note.name, // Join data provides 'name' from spirit
+          rating: note.rating,
+          date: note.createdAt?._seconds ? new Date(note.createdAt._seconds * 1000) : (note.createdAt ? new Date(note.createdAt) : new Date()),
+          image: note.image || null,
+        })));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -41,8 +45,8 @@ const Collection = () => {
       }
     };
 
-    fetchData();
-  }, [sortBy]);
+    fetchNotesByApi();
+  }, [sortBy, auth.currentUser]);
 
   const filteredNotes = notes.filter(note => 
     note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
