@@ -24,7 +24,10 @@ jobs:
         run: |
           echo "$SERVICE_ACCOUNT" > service_account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/service_account.json
-          npx firebase-tools deploy --only functions --project antigravity-dd7c2
+          # Install dependencies for functions
+          cd functions && npm install && cd ..
+          # Deploy functions
+          npx firebase-tools deploy --only functions --project antigravity-dd7c2 --non-interactive
           rm service_account.json
         working-directory: spirit-notes
         env:
