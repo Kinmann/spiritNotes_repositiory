@@ -62,6 +62,25 @@ const calculateFlavorDNA = (notes) => {
   return dna;
 };
 
+/**
+ * Cosine Similarity calculation for flavor profile matching
+ */
+const calculateCosineSimilarity = (vecA, vecB) => {
+  const keys = ['peat', 'floral', 'fruity', 'woody', 'spicy', 'sweet'];
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  keys.forEach(k => {
+    const a = vecA[k] || 0;
+    const b = vecB[k] || 0;
+    dotProduct += a * b;
+    normA += Math.pow(a, 2);
+    normB += Math.pow(b, 2);
+  });
+  if (normA === 0 || normB === 0) return 0;
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+};
+
 // --- Helper Functions for Data Enrichment ---
 
 const buildHierarchy = (id, dataMap) => {
@@ -364,6 +383,100 @@ router.delete('/notes/:userId/:noteId', async (req, res) => {
   }
 });
 
+// POST /recommendations/:userId - Generate personalized recommendations
+router.post('/recommendations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    let recs = [];
+
+    let userDNA = null;
+    let tastedSpiritIds = new Set();
+
+    if (userId && userId !== 'guest') {
+      const userDoc = await db.collection('users').doc(userId).get();
+      const userData = userDoc.data();
+      if (userData && userData.flavorDNA) {
+        userDNA = userData.flavorDNA;
+        // Query user's subcollection for tasted spirits
+        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+        notesSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
+        });
+      }
+    }
+
+    const allSpiritsSnapshot = await db.collection('spirits').get();
+    const candidates = [];
+    
+    allSpiritsSnapshot.forEach(doc => {
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+      
+      if (userDNA && spiritData.flavor_axes) {
+        if (!tastedSpiritIds.has(doc.id)) {
+          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
+          candidates.push({ ...spiritData, similarity });
+        }
+      } else {
+        // Random similarity for users without DNA
+        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
+      }
+    });
+
+    candidates.sort((a, b) => b.similarity - a.similarity);
+    const top3 = candidates.slice(0, 3);
+    
+    if (top3.length === 0) {
+      return res.json({ success: true, recommendations: [] });
+    }
+
+    const genAI = getGenAI();
+    if (!genAI) {
+      recs = top3.map(c => ({
+        ...c,
+        reason: `${c.category || '취향'} 카테고리에서 당신의 취향과 ${(c.similarity * 100).toFixed(0)}% 일치하는 추천작입니다.`,
+        matchRate: Math.round(c.similarity * 100)
+      }));
+    } else {
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
+        const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+        
+        const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+        const aiRecs = JSON.parse(jsonStr);
+
+        recs = top3.map(spirit => {
+          const aiRec = aiRecs.find(r => r.id === spirit.id);
+          return {
+            ...spirit,
+            reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
+            matchRate: Math.round(spirit.similarity * 100)
+          };
+        });
+      } catch (aiError) {
+        console.error("AI Recommendation error:", aiError);
+        recs = top3.map(c => ({
+          ...c,
+          reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
+          matchRate: Math.round(c.similarity * 100)
+        }));
+      }
+    }
+
+    res.json({ success: true, recommendations: recs });
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /persona/:userId - Generate a poetic taste persona using Gemini AI
 router.post('/persona/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -397,7 +510,7 @@ router.post('/persona/:userId', async (req, res) => {
     
     res.json({ success: true, persona });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
