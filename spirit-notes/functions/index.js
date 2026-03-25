@@ -19,7 +19,13 @@ app.use(cors({ origin: true }));
 app.use(express.json());
 
 // Gemini AI 초기화 (Secret Manager에서 환경변수로 제공됨)
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+// Lazy initialization helper for genAI
+const getGenAI = () => {
+  if (process.env.GEMINI_API_KEY) {
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+  return null;
+};
 
 // --- Helper Functions ---
 
@@ -282,6 +288,7 @@ router.post('/recommendations/:userId', async (req, res) => {
     const top3 = candidates.slice(0, 3);
     
     let recs = [];
+    const genAI = getGenAI();
     if (!genAI) {
       // Fallback if AI is disabled or key is missing
       recs = top3.map(c => ({
@@ -337,6 +344,7 @@ router.post('/persona/:userId', async (req, res) => {
       recommendationFocus: ["복합미", "질감", "피니시"]
     };
 
+    const genAI = getGenAI();
     if (userData && userData.flavorDNA && genAI) {
       try {
         const { flavorDNA } = userData;
@@ -361,7 +369,9 @@ router.post('/persona/:userId', async (req, res) => {
   }
 });
 
+// Support both production (with /api prefix from Hosting) and local (without /api prefix from Emulator)
 app.use('/api', router);
+app.use('/', router);
 
 // Export the function
 exports.api = onRequest({
