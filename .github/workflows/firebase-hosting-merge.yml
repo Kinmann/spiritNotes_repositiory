@@ -9,8 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: spirit-notes/package-lock.json
+
       - name: Install and Build
-        run: npm ci && npm run build
+        run: |
+          npm ci
+          npm run build
         working-directory: spirit-notes
         env:
           VITE_FIREBASE_API_KEY: AIzaSyDriRqjMOYFbvmgBxidNoCEU23QGYugGCs
@@ -20,22 +29,24 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: 149534308464
           VITE_FIREBASE_APP_ID: 1:149534308464:web:33e743a318dd8394511cb5
           VITE_FIREBASE_MEASUREMENT_ID: G-BEYLVVGNQ0
+
       - name: Deploy Functions
         run: |
-          # The service account is already available in the environment from the secret
           echo "$FIREBASE_SERVICE_ACCOUNT_FILE" > service_account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/service_account.json
           
-          # Install dependencies for functions
-          cd functions && npm install && cd ..
+          cd functions
+          npm ci
+          cd ..
           
-          # Deploy functions using npx to ensure firebase-tools is available
+          # Deploy functions
           npx firebase-tools deploy --only functions --project antigravity-dd7c2 --non-interactive
           
           rm service_account.json
         working-directory: spirit-notes
         env:
           FIREBASE_SERVICE_ACCOUNT_FILE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

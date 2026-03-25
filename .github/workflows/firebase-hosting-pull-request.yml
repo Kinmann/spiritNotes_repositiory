@@ -7,8 +7,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: spirit-notes/package-lock.json
+
       - name: Install and Build
-        run: npm ci && npm run build
+        run: |
+          npm ci
+          npm run build
         working-directory: spirit-notes
         env:
           VITE_FIREBASE_API_KEY: AIzaSyDriRqjMOYFbvmgBxidNoCEU23QGYugGCs
@@ -18,6 +27,7 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: 149534308464
           VITE_FIREBASE_APP_ID: 1:149534308464:web:33e743a318dd8394511cb5
           VITE_FIREBASE_MEASUREMENT_ID: G-BEYLVVGNQ0
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
