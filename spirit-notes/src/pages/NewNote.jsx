@@ -107,17 +107,17 @@ const NewNote = () => {
 
   // 클라이언트 사이드 부분 문자열 검색 (대소문자 무시)
   useEffect(() => {
+    setIsSearching(true);
     if (searchQuery.length < 1) {
-      setSearchResults([]);
-      setShowSearchDropdown(false);
+      setSearchResults(allSpirits);
+      setIsSearching(false);
       return;
     }
-    setIsSearching(true);
     const query = searchQuery.toLowerCase();
     const filtered = allSpirits.filter(s => 
       s.name?.toLowerCase().includes(query) ||
       s.distillery?.toLowerCase().includes(query)
-    ).slice(0, 8);
+    );
     setSearchResults(filtered);
     setShowSearchDropdown(filtered.length > 0);
     setIsSearching(false);
@@ -394,9 +394,8 @@ const NewNote = () => {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  if (e.target.value.length < 1) setShowSearchDropdown(false);
                 }}
-                onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
+                onFocus={() => setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
               />
               
