@@ -22,17 +22,20 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: G-BEYLVVGNQ0
       - name: Deploy Functions
         run: |
-          echo "$SERVICE_ACCOUNT" > service_account.json
+          # The service account is already available in the environment from the secret
+          echo "$FIREBASE_SERVICE_ACCOUNT_FILE" > service_account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/service_account.json
+          
           # Install dependencies for functions
           cd functions && npm install && cd ..
-          # Deploy functions
+          
+          # Deploy functions using npx to ensure firebase-tools is available
           npx firebase-tools deploy --only functions --project antigravity-dd7c2 --non-interactive
+          
           rm service_account.json
         working-directory: spirit-notes
         env:
-          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}
-          FIREBASE_CLI_PREVIEWS: te
+          FIREBASE_SERVICE_ACCOUNT_FILE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
