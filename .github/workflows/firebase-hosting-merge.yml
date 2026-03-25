@@ -30,27 +30,25 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
 
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}'
+
       - name: Deploy Functions
         run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT_FILE" > service_account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/service_account.json
-          
           cd functions
           npm ci
           cd ..
           
-          # Deploy functions
-          npx firebase-tools deploy --only functions --project antigravity-dd7c2 --non-interactive
-          
-          rm service_account.json
+          # Deploy functions using authenticated environment
+          npx firebase-tools deploy --only functions --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }} --non-interactive
         working-directory: spirit-notes
-        env:
-          FIREBASE_SERVICE_ACCOUNT_FILE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ANTIGRAVITY_DD7C2 }}'
           channelId: live
-          projectId: antigravity-dd7c2
+          projectId: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
           entryPoint: "spirit-notes"
