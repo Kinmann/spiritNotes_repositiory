@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env'), override: true });
 const { onRequest } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const express = require('express');
@@ -21,8 +22,9 @@ app.use(express.json());
 // Gemini AI 초기화 (Secret Manager에서 환경변수로 제공됨)
 // Lazy initialization helper for genAI
 const getGenAI = () => {
-  if (process.env.GEMINI_API_KEY) {
-    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (apiKey) {
+    return new GoogleGenerativeAI(apiKey);
   }
   return null;
 };
@@ -60,33 +62,16 @@ const calculateFlavorDNA = (notes) => {
   return dna;
 };
 
-const calculateCosineSimilarity = (vecA, vecB) => {
-  const keys = ['peat', 'floral', 'fruity', 'woody', 'spicy', 'sweet'];
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-  keys.forEach(k => {
-    const a = vecA[k] || 0;
-    const b = vecB[k] || 0;
-    dotProduct += a * b;
-    normA += Math.pow(a, 2);
-    normB += Math.pow(b, 2);
-  });
-  if (normA === 0 || normB === 0) return 0;
-  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-};
+// --- Helper Functions for Data Enrichment ---
 
-const getHierarchy = (id, dataMap) => {
+const buildHierarchy = (id, dataMap) => {
   let currentId = id;
   let path = [];
   while (currentId && dataMap[currentId]) {
     path.unshift(dataMap[currentId].name);
     currentId = dataMap[currentId].parentId;
   }
-  return {
-    display: path.join(' > '),
-    path: path
-  };
+  return path.join(' > ');
 };
 
 const getEnrichmentMaps = async (db) => {
@@ -97,14 +82,14 @@ const getEnrichmentMaps = async (db) => {
   const catsDocData = {};
   catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
   catsSnapshot.forEach(doc => {
-    categoriesMap[doc.id] = getHierarchy(doc.id, catsDocData);
+    categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
   });
 
   const locsSnapshot = await db.collection('locations').get();
   const locsDocData = {};
   locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
   locsSnapshot.forEach(doc => {
-    locationsMap[doc.id] = getHierarchy(doc.id, locsDocData);
+    locationsMap[doc.id] = buildHierarchy(doc.id, locsDocData);
   });
   
   return { categoriesMap, locationsMap };
@@ -112,191 +97,146 @@ const getEnrichmentMaps = async (db) => {
 
 const enrichSpirit = (s, categoriesMap, locationsMap) => ({
   ...s,
-  category: (s.categoryId && categoriesMap[s.categoryId]?.display) || s.category || '위스키 > 스카치 > 싱글몰트',
-  categoryHierarchy: (s.categoryId && categoriesMap[s.categoryId]?.path) || s.categoryHierarchy || [],
-  origin: (s.locationId && locationsMap[s.locationId]?.display) || s.origin || '스코틀랜드 > 스페이사이드',
-  locationHierarchy: (s.locationId && locationsMap[s.locationId]?.path) || s.locationHierarchy || []
+  category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
+  origin: (s.locationId && locationsMap[s.locationId]) || s.origin || '스코틀랜드 > 스페이사이드'
 });
 
 // --- API Routes ---
+
 const router = express.Router();
 
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Spirit Notes Cloud Function is running' });
-});
-
+// GET all spirits with category and location metadata
 router.get('/spirits', async (req, res) => {
   try {
     const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const allSpiritsSnapshot = await db.collection('spirits').get();
-    const spirits = allSpiritsSnapshot.docs.map(doc => 
-      enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap)
-    );
+    const spiritsSnapshot = await db.collection('spirits').get();
+    
+    const spirits = spiritsSnapshot.docs.map(doc => {
+      const data = doc.id ? { id: doc.id, ...doc.data() } : doc.data();
+      return enrichSpirit(data, categoriesMap, locationsMap);
+    });
+
     res.json({ success: true, spirits });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching spirits:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-router.get('/spirits/:id', async (req, res) => {
+// GET /notes/:userId - Fetch all notes for a specific user
+router.get('/notes/:userId', async (req, res) => {
   try {
-    const { id } = req.params;
-    const spiritDoc = await db.collection('spirits').doc(id).get();
-    if (!spiritDoc.exists) return res.status(404).json({ error: 'Spirit not found' });
+    const { userId } = req.params;
     const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
-    res.json({ success: true, spirit });
+    
+    // Query the user's notes subcollection
+    const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
+      .orderBy('createdAt', 'desc')
+      .get();
+    
+    const notes = notesSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        // Enrich spirit data within the note if it exists
+        spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap) : null
+      };
+    });
+
+    res.json({ success: true, notes });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching user notes:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
+// GET /notes/:userId/:noteId - Fetch a single note
+router.get('/notes/:userId/:noteId', async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    
+    const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
+    
+    if (!noteDoc.exists) {
+      return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+
+    const data = noteDoc.data();
+    const note = {
+      id: noteDoc.id,
+      ...data,
+      spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap) : null
+    };
+
+    res.json({ success: true, note });
+  } catch (error) {
+    console.error('Error fetching note detail:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update Flavor DNA for a user
 router.post('/flavor-dna/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+    
     const notes = notesSnapshot.docs.map(doc => doc.data());
     const flavorDNA = calculateFlavorDNA(notes);
-    await db.collection('users').doc(userId).set({ 
-      flavorDNA, 
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp() 
-    }, { merge: true });
+
+    await db.collection('users').doc(userId).set({ flavorDNA }, { merge: true });
     res.json({ success: true, flavorDNA });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/notes/:userId', async (req, res) => {
+// Calculate recommendations based on Flavor DNA
+router.get('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
-      .orderBy('createdAt', 'desc').get();
-    
-    if (notesSnapshot.empty) return res.json({ success: true, notes: [] });
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userDNA = userDoc.data()?.flavorDNA;
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+    const tastedSpiritIds = new Set();
+    notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
+
     const spiritsSnapshot = await db.collection('spirits').get();
-    const spiritsMap = {};
-    spiritsSnapshot.forEach(doc => {
-      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
-    });
-
-    const notes = notesSnapshot.docs.map(doc => {
-      const noteData = doc.data();
-      const spiritId = noteData.spirit_id;
-      const spiritInfo = spiritId ? spiritsMap[spiritId] : null;
-
-      return {
-        id: doc.id,
-        ...noteData,
-        name: spiritInfo?.name || noteData.name,
-        distillery: spiritInfo?.distillery || noteData.distillery,
-        category: spiritInfo?.category || noteData.category,
-        categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy,
-        origin: spiritInfo?.origin || noteData.origin,
-        locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy,
-        abv: spiritInfo?.abv || noteData.abv,
-        volume: spiritInfo?.volume || noteData.volume,
-        image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
-      };
-    });
-    res.json({ success: true, notes });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get('/notes/:userId/:noteId', async (req, res) => {
-  try {
-    const { userId, noteId } = req.params;
-    const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
-    if (!noteDoc.exists) return res.status(404).json({ error: 'Note not found' });
-
-    const noteData = noteDoc.data();
-    const spiritId = noteData.spirit_id;
-    let spiritInfo = null;
-    if (spiritId) {
-      const spiritDoc = await db.collection('spirits').doc(spiritId).get();
-      if (spiritDoc.exists) {
-        const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
-      }
-    }
-
-    const enrichedNote = {
-      id: noteDoc.id,
-      ...noteData,
-      name: spiritInfo?.name || noteData.name,
-      distillery: spiritInfo?.distillery || noteData.distillery,
-      category: spiritInfo?.category || noteData.category,
-      categoryHierarchy: spiritInfo?.categoryHierarchy || noteData.categoryHierarchy,
-      origin: spiritInfo?.origin || noteData.origin,
-      locationHierarchy: spiritInfo?.locationHierarchy || noteData.locationHierarchy,
-      abv: spiritInfo?.abv || noteData.abv,
-      volume: spiritInfo?.volume || noteData.volume,
-      image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
-    };
-    res.json({ success: true, note: enrichedNote });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.delete('/notes/:userId/:noteId', async (req, res) => {
-  try {
-    const { userId, noteId } = req.params;
-    await db.collection('users').doc(userId).collection('notes').doc(noteId).delete();
-    res.json({ success: true, message: 'Note deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post('/recommendations/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
     const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    let userDNA = null;
-    let tastedSpiritIds = new Set();
+    const spirits = spiritsSnapshot.docs.map(doc => enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap));
 
-    if (userId && userId !== 'guest') {
-      const userDoc = await db.collection('users').doc(userId).get();
-      const userData = userDoc.data();
-      if (userData && userData.flavorDNA) {
-        userDNA = userData.flavorDNA;
-        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-        notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
-      }
-    }
-
-    const allSpiritsSnapshot = await db.collection('spirits').get();
-    const candidates = [];
-    allSpiritsSnapshot.forEach(doc => {
-      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
-      if (userDNA && spiritData.flavor_axes) {
-        if (!tastedSpiritIds.has(doc.id)) {
-          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
-          candidates.push({ ...spiritData, similarity });
-        }
+    // Simple similarity calculation (Euclidean distance) if DNA exists
+    const scoredSpirits = spirits.map(spirit => {
+      let similarity = 0;
+      if (userDNA && spirit.flavor_axes) {
+        let sumSquaredDiff = 0;
+        let count = 0;
+        Object.keys(userDNA).forEach(key => {
+          if (spirit.flavor_axes[key] !== undefined) {
+            sumSquaredDiff += Math.pow(userDNA[key] - spirit.flavor_axes[key], 2);
+            count++;
+          }
+        });
+        similarity = count > 0 ? 1 / (1 + Math.sqrt(sumSquaredDiff)) : 0;
       } else {
-        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
+        // Fallback for new users: popularity or random
+        similarity = 0.5; 
       }
+      return { ...spirit, similarity };
     });
 
-    candidates.sort((a, b) => b.similarity - a.similarity);
-    const top3 = candidates.slice(0, 3);
-    
+    // Sort by similarity and take top 3
+    const top3 = scoredSpirits
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 3);
+
+    // Get AI-powered recommendation reasons if Gemini is configured
     let recs = [];
     const genAI = getGenAI();
-    if (!genAI) {
-      // Fallback if AI is disabled or key is missing
-      recs = top3.map(c => ({
-        id: c.id,
-        name: c.name,
-        reason: `${c.category || ' whiskey'} 카테고리에서 당신의 취향과 가장 잘 어울리는 평점을 받은 주류입니다.`
-      }));
-    } else {
+    if (genAI) {
       try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
@@ -327,6 +267,98 @@ router.post('/recommendations/:userId', async (req, res) => {
       };
     });
     res.json({ success: true, recommendations: finalRecs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET all notes for a user (Joined with spirit metadata)
+router.get('/notes/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
+      .orderBy('createdAt', 'desc')
+      .get();
+    
+    if (notesSnapshot.empty) {
+      return res.json({ success: true, notes: [] });
+    }
+
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const spiritsSnapshot = await db.collection('spirits').get();
+    const spiritsMap = {};
+    spiritsSnapshot.forEach(doc => {
+      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+    });
+
+    const notes = notesSnapshot.docs.map(doc => {
+      const noteData = doc.data();
+      const spiritId = noteData.spirit_id;
+      const spiritInfo = spiritId ? spiritsMap[spiritId] : null;
+
+      return {
+        id: doc.id,
+        ...noteData,
+        name: spiritInfo?.name || noteData.name,
+        distillery: spiritInfo?.distillery || noteData.distillery,
+        category: spiritInfo?.category || noteData.category,
+        abv: spiritInfo?.abv || noteData.abv,
+        volume: spiritInfo?.volume || noteData.volume,
+        image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
+      };
+    });
+
+    res.json({ success: true, notes });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET a single note detail
+router.get('/notes/:userId/:noteId', async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
+    
+    if (!noteDoc.exists) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const noteData = noteDoc.data();
+    const spiritId = noteData.spirit_id;
+    
+    let spiritInfo = null;
+    if (spiritId) {
+      const spiritDoc = await db.collection('spirits').doc(spiritId).get();
+      if (spiritDoc.exists) {
+        const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+      }
+    }
+
+    const enrichedNote = {
+      id: noteDoc.id,
+      ...noteData,
+      name: spiritInfo?.name || noteData.name,
+      distillery: spiritInfo?.distillery || noteData.distillery,
+      category: spiritInfo?.category || noteData.category,
+      abv: spiritInfo?.abv || noteData.abv,
+      volume: spiritInfo?.volume || noteData.volume,
+      image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
+    };
+
+    res.json({ success: true, note: enrichedNote });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE a note
+router.delete('/notes/:userId/:noteId', async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    await db.collection('users').doc(userId).collection('notes').doc(noteId).delete();
+    res.json({ success: true, message: 'Note deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
