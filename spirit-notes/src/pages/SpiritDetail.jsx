@@ -124,7 +124,7 @@ const SpiritDetail = () => {
         <section className={styles.heroSection}>
           <div className={styles.titleArea}>
             <span className={styles.distilleryLabel}>
-              {spirit.distillery || "Unknown Distillery"}
+              {spirit.distilleryName || spirit.distillery || "Unknown Distillery"}
             </span>
             <h1 className={styles.spiritName}>{spirit.name}</h1>
           </div>
@@ -247,23 +247,23 @@ const SpiritDetail = () => {
           <div className={styles.detailsBento}>
             <div className={styles.bentoItem}>
               <span className={styles.bentoLabel}>Distillery Info</span>
-              <h4>{spirit.distillery}</h4>
+              <h4>{spirit.distilleryName || spirit.distillery}</h4>
               <p>
-                {spirit.description || "Detailed distillery background and production process currently being updated."}
+                {spirit.distilleryDescription || "Detailed distillery background and production process currently being updated."}
               </p>
             </div>
             <div className={styles.bentoItem}>
               <span className={styles.bentoLabel}>Terroir & Region</span>
               <h4>{spirit.origin.split(' > ').pop()}</h4>
               <p>
-                The unique climate and water sources of {spirit.origin} contribute to the distinct {dominantFlavor[0]} characteristics found in this expression.
+                {spirit.originDescription || `The unique climate and water sources of ${spirit.origin} contribute to the distinct ${dominantFlavor[0]} characteristics found in this expression.`}
               </p>
             </div>
             <div className={styles.bentoItem}>
               <span className={styles.bentoLabel}>Production Notes</span>
-              <h4>Slow Matured</h4>
+              <h4>{spirit.productionTitle}</h4>
               <p>
-                Crafted using traditional methods to ensure {spirit.abv}% ABV carries the full complexity of {spirit.name}'s flavor profile.
+                {spirit.productionDescription}
               </p>
             </div>
           </div>

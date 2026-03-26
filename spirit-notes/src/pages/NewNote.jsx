@@ -6,6 +6,7 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc, getDocs, getDoc } 
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
 import { getNoteById } from '@/api/notes';
+import { getAllSpirits } from '@/api/spirits';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './NewNote.module.scss';
 
@@ -92,10 +93,12 @@ const NewNote = () => {
   useEffect(() => {
     const loadAllSpirits = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'spirits'));
-        const spirits = [];
-        snapshot.forEach(doc => spirits.push({ id: doc.id, ...doc.data() }));
-        setAllSpirits(spirits);
+        const data = await getAllSpirits();
+        if (data && data.spirits) {
+          setAllSpirits(data.spirits);
+        } else if (Array.isArray(data)) {
+          setAllSpirits(data);
+        }
       } catch (error) {
         console.error('Failed to load spirits:', error);
       }
@@ -107,90 +110,62 @@ const NewNote = () => {
 
   // 클라이언트 사이드 부분 문자열 검색 (대소문자 무시)
   useEffect(() => {
+    if (!allSpirits || !Array.isArray(allSpirits)) return;
+    
     setIsSearching(true);
     if (searchQuery.length < 1) {
       setSearchResults(allSpirits);
       setIsSearching(false);
       return;
     }
+    
     const query = searchQuery.toLowerCase();
-    const filtered = allSpirits.filter(s => 
-      s.name?.toLowerCase().includes(query) ||
-      s.distillery?.toLowerCase().includes(query)
-    );
+    const filtered = allSpirits.filter(s => {
+      if (!s) return false;
+      const nameMatch = s.name?.toLowerCase()?.includes(query);
+      const distilleryMatch = s.distillery?.toLowerCase()?.includes(query) || 
+                         s.distilleryName?.toLowerCase()?.includes(query);
+      return nameMatch || distilleryMatch;
+    });
+    
     setSearchResults(filtered);
     setShowSearchDropdown(filtered.length > 0);
     setIsSearching(false);
   }, [searchQuery, allSpirits]);
 
   const handleSelectSpirit = async (spirit) => {
-    setLoading(true);
-    try {
-      // 1. Basic spirit details
-      const updateData = {
-        name: spirit.name || '',
-        distillery: spirit.distillery || '',  // 올바른 필드명
-        abv: spirit.abv || '',
-        volume: spirit.volume || '',
-        peat: spirit.flavor_axes?.peat || 0,
-        floral: spirit.flavor_axes?.floral || 0,
-        fruity: spirit.flavor_axes?.fruity || 0,
-        woody: spirit.flavor_axes?.woody || 0,
-        spicy: spirit.flavor_axes?.spicy || 0,
-        sweet: spirit.flavor_axes?.sweet || 0,
-        spirit_id: spirit.id
-      };
+    if (!spirit) return;
+    
+    // API provides enriched data (distillery, category, origin as strings)
+    const updateData = {
+      name: spirit.name || '',
+      distillery: spirit.distillery || spirit.distilleryName || '',
+      category: spirit.category || '',
+      origin: spirit.origin || '',
+      abv: spirit.abv || '',
+      volume: spirit.volume || '',
+      peat: spirit.flavor_axes?.peat || 0,
+      floral: spirit.flavor_axes?.floral || 0,
+      fruity: spirit.flavor_axes?.fruity || 0,
+      woody: spirit.flavor_axes?.woody || 0,
+      spicy: spirit.flavor_axes?.spicy || 0,
+      sweet: spirit.flavor_axes?.sweet || 0,
+      spirit_id: spirit.id,
+      // Clear hierarchies as we use the enriched strings now
+      categoryHierarchy: [],
+      locationHierarchy: []
+    };
 
-      // 2. Fetch Category Hierarchy
-      const categoryPath = [];
-      if (spirit.categoryId) {
-        let currentId = spirit.categoryId;
-        while (currentId) {
-          const catSnap = await getDoc(doc(db, 'categories', currentId));
-          if (catSnap.exists()) {
-            const catData = catSnap.data();
-            categoryPath.unshift(catData.name);
-            currentId = catData.parentId;
-          } else {
-            currentId = null;
-          }
-        }
-      }
-
-      // 3. Fetch Location Hierarchy
-      const locationPath = [];
-      if (spirit.locationId) {
-        let currentId = spirit.locationId;
-        while (currentId) {
-          const locSnap = await getDoc(doc(db, 'locations', currentId));
-          if (locSnap.exists()) {
-            const locData = locSnap.data();
-            locationPath.unshift(locData.name);
-            currentId = locData.parentId;
-          } else {
-            currentId = null;
-          }
-        }
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        ...updateData,
-        categoryHierarchy: categoryPath,
-        locationHierarchy: locationPath
-      }));
-      setSearchQuery('');
-      setSearchResults([]);
-      setShowSearchDropdown(false);
-      
-      if (spirit.image && !imageFile) {
-        setImagePreview(spirit.image);
-      }
-    } catch (error) {
-      console.error("Error populating spirit data:", error);
-      toast.error("주류 정보를 가져오는데 실패했습니다.");
-    } finally {
-      setLoading(false);
+    setFormData(prev => ({
+      ...prev,
+      ...updateData
+    }));
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchDropdown(false);
+    
+    if (spirit.image && !imageFile) {
+      setImagePreview(spirit.image);
     }
   };
 
@@ -441,10 +416,10 @@ const NewNote = () => {
             <div className={styles.infoFieldRow}>
               <span className={styles.fieldLabel}>Origin</span>
               <span className={styles.fieldLine}></span>
-              <span className={`${styles.fieldValue} ${formData.locationHierarchy.length === 0 ? styles.empty : ''}`}>
+              <span className={`${styles.fieldValue} ${formData.locationHierarchy.length === 0 && !formData.origin ? styles.empty : ''}`}>
                 {formData.locationHierarchy.length > 0 
                   ? formData.locationHierarchy.join(' > ') 
-                  : "Select Spirit"}
+                  : (formData.origin || "Select Spirit")}
               </span>
             </div>
             <div className={styles.infoFieldRow}>

@@ -101,45 +101,111 @@ const buildHierarchy = (id, dataMap) => {
 const getEnrichmentMaps = async (db) => {
   const categoriesMap = {};
   const locationsMap = {};
+  const distilleriesMap = {};
   
-  const catsSnapshot = await db.collection('categories').get();
-  const catsDocData = {};
-  catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
-  catsSnapshot.forEach(doc => {
-    categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
-  });
+  if (db) {
+    try {
+      const catsSnapshot = await db.collection('categories').get();
+      const catsDocData = {};
+      catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
+      catsSnapshot.forEach(doc => {
+        categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
+      });
 
-  const locsSnapshot = await db.collection('locations').get();
-  const locsDocData = {};
-  locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
-  locsSnapshot.forEach(doc => {
-    locationsMap[doc.id] = buildHierarchy(doc.id, locsDocData);
-  });
+      const locsSnapshot = await db.collection('locations').get();
+      const locsDocData = {};
+      locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
+      locsSnapshot.forEach(doc => {
+        locationsMap[doc.id] = {
+          path: buildHierarchy(doc.id, locsDocData),
+          description: locsDocData[doc.id]?.description || ''
+        };
+      });
+
+      const distsSnapshot = await db.collection('distilleries').get();
+      distsSnapshot.forEach(doc => {
+        const data = doc.data();
+        distilleriesMap[doc.id] = {
+          name: data.name || '',
+          description: data.description || ''
+        };
+      });
+    } catch (err) {
+      console.error('[ERROR] Failed to fetch enrichment maps:', err);
+    }
+  }
   
-  return { categoriesMap, locationsMap };
+  return { categoriesMap, locationsMap, distilleriesMap };
 };
 
-const enrichSpirit = (s, categoriesMap, locationsMap) => ({
-  ...s,
-  category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
-  origin: (s.locationId && locationsMap[s.locationId]) || s.origin || '스코틀랜드 > 스페이사이드'
-});
+const enrichSpirit = (s, categoriesMap, locationsMap, distilleriesMap) => {
+  const locInfo = s.locationId ? locationsMap[s.locationId] : null;
+  const distInfo = s.distilleryId ? distilleriesMap[s.distilleryId] : null;
+
+  return {
+    ...s,
+    category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
+    origin: locInfo?.path || s.origin || '스코틀랜드 > 스페이사이드',
+    originDescription: locInfo?.description || s.originDescription || '',
+    distillery: distInfo?.name || s.distillery || 'Unknown Distillery',
+    distilleryName: distInfo?.name || s.distillery || 'Unknown Distillery',
+    distilleryDescription: distInfo?.description || s.distilleryDescription || '',
+    productionTitle: s.info?.title || '',
+    productionDescription: s.info?.description || ''
+  };
+};
 
 // --- API Routes ---
 
 const router = express.Router();
 
+// [TEMP] Migration Endpoint
+router.get('/admin/migrate-spirits', async (req, res) => {
+  try {
+    const spiritMigrationData = {
+      '4SfepyxW7Ye1Q46FFLw2': { distilleryId: 'springbank-distillery', info: { title: 'Slow Matured', description: '전통적인 캄벨타운 방식으로 숙성되어 46% ABV의 풍부한 힘을 고스란히 간직하고 있습니다.' } },
+      '54nXY3Lgkfab2R80zdxS': { distilleryId: 'macallan-distillery', info: { title: 'Sherry Oak Cask', description: '최고급 쉐리 오크통에서 숙성되어 깊고 풍부한 풍미를 자랑합니다.' } },
+      'M8k94sltZgy1Hz9nNliw': { distilleryId: 'ardbeg-distillery', info: { title: 'Ultimate Islay Malt', description: '강렬한 피트 향과 섬세한 단맛이 완벽한 균형을 이루는 아일라의 대표 주자입니다.' } },
+      '7Rt8a8KXxyZQBOEbcHBL': { distilleryId: 'suntory', info: { title: 'Japanese Harmony', description: '일본의 사계를 담은 24절기를 상징하는 병 디자인과 정교한 블렌딩이 특징입니다.' } },
+      'VNsUCMo9JjHxufGRCNlC': { distilleryId: 'aberlour-distillery', info: { title: 'Double Cask Matured', description: '쉐리 캐스크와 버번 캐스크에서 각각 숙성된 원액을 합쳐 과일 향과 스파이시함이 조화롭습니다.' } },
+      'VY07i1pXQFkGjrJJARvP': { distilleryId: 'glenfiddich-distillery', info: { title: 'Pioneering Spirit', description: '세계에서 가장 많이 팔리는 싱글 몰트로, 신선한 배의 향과 부드러운 목넘김이 일품입니다.' } },
+      'cE27L2aZaBjZR2GMXzPC': { distilleryId: 'lagavulin-distillery', info: { title: 'King of Islay', description: '긴 숙성 시간만큼이나 깊고 묵직한 탄 향과 드라이한 풍미를 지니고 있습니다.' } },
+      '8hw5ee2dQstVuu8J2leP': { distilleryId: 'william-grant-sons', info: { title: 'DoubleWood 12', description: '전통적인 오크통에서 쉐리 오크통으로 옮겨 숙성하는 \'피니시\' 기법의 선구자입니다.' } },
+      'B0uxTSDBTjjij2swmHUH': { distilleryId: 'suntory-yamazaki-distillery', info: { title: 'Deep & Multi-layered', description: '미즈나라 오크통 숙성 특유의 향기로운 나무 향과 과일의 단맛이 층층이 쌓여있습니다.' } },
+      'Dn9V6u75icRxwdIiE0ZP': { distilleryId: 'ballantines', info: { title: 'The Original', description: '40여 가지 이상의 엄선된 몰트와 그레인 위스키를 블렌딩하여 우아하고 균형 잡힌 맛을 냅니다.' } },
+      'GtcfupHukVQMDG4fe1Gx': { distilleryId: 'william-grant-sons', info: { title: 'Curiously Small Batch', description: '장미 꽃잎과 오이 추출물을 더해 기존 진에서는 찾아볼 수 없는 독특하고 상쾌한 향이 느껴집니다.' } },
+      '5u8YlHFDKIyUfwVz4PvH': { distilleryId: 'opus-one-winery', info: { title: 'Napa Valley Red Wine', description: '로버트 먼다비와 바론 필립 드 로칠드가 합작하여 만든 전설적인 나파 밸리 레드 와인입니다.' } },
+      'XX9othMhxTceNK3uHWy3': { distilleryId: 'chateau-margaux', info: { title: 'Premier Grand Cru Classé', description: '5대 샤토 중 가장 우아하고 여성적이라고 평가받으며, 실크처럼 부드러운 타닌이 특징입니다.' } },
+      'diuDpqTAgz4tTzfQSK5N': { distilleryId: 'screaming-eagle-winery', info: { title: 'Cult Wine', description: '미국 컬트 와인의 정점으로 불리며, 매년 극소량만 생산되어 전 세계 수집가들의 목표가 됩니다.' } }
+    };
+
+    const batch = db.batch();
+    for (const [id, data] of Object.entries(spiritMigrationData)) {
+      const ref = db.collection('spirits').doc(id);
+      batch.update(ref, {
+        distilleryId: data.distilleryId,
+        info: data.info,
+        distillery: admin.firestore.FieldValue.delete(),
+        description: admin.firestore.FieldValue.delete()
+      });
+    }
+    await batch.commit();
+    res.json({ success: true, message: 'Spirit migration completed successfully' });
+  } catch (error) {
+    console.error('Migration failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // GET all spirits with category and location metadata
 router.get('/spirits', async (req, res) => {
   try {
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spiritsSnapshot = await db.collection('spirits').get();
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+    const allSpiritsSnapshot = await db.collection('spirits').get();
     
-    const spirits = spiritsSnapshot.docs.map(doc => {
-      const data = doc.id ? { id: doc.id, ...doc.data() } : doc.data();
-      return enrichSpirit(data, categoriesMap, locationsMap);
-    });
-
+    const spirits = allSpiritsSnapshot.docs.map(doc => 
+      enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap)
+    );
     res.json({ success: true, spirits });
   } catch (error) {
     console.error('Error fetching spirits:', error);
@@ -159,8 +225,8 @@ router.get('/spirits/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Spirit not found' });
     }
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap, distilleriesMap);
 
     res.json({ success: true, spirit });
   } catch (error) {
@@ -173,7 +239,7 @@ router.get('/spirits/:id', async (req, res) => {
 router.get('/notes/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     
     // Query the user's notes subcollection
     const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
@@ -186,7 +252,7 @@ router.get('/notes/:userId', async (req, res) => {
         id: doc.id,
         ...data,
         // Enrich spirit data within the note if it exists
-        spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap) : null
+        spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap, distilleriesMap) : null
       };
     });
 
@@ -201,7 +267,7 @@ router.get('/notes/:userId', async (req, res) => {
 router.get('/notes/:userId/:noteId', async (req, res) => {
   try {
     const { userId, noteId } = req.params;
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     
     const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
     
@@ -213,7 +279,7 @@ router.get('/notes/:userId/:noteId', async (req, res) => {
     const note = {
       id: noteDoc.id,
       ...data,
-      spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap) : null
+      spirit: data.spirit ? enrichSpirit(data.spirit, categoriesMap, locationsMap, distilleriesMap) : null
     };
 
     res.json({ success: true, note });
@@ -251,8 +317,8 @@ router.get('/recommendations/:userId', async (req, res) => {
     notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
 
     const spiritsSnapshot = await db.collection('spirits').get();
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spirits = spiritsSnapshot.docs.map(doc => enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap));
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+    const spirits = spiritsSnapshot.docs.map(doc => enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap));
 
     // Simple similarity calculation (Euclidean distance) if DNA exists
     const scoredSpirits = spirits.map(spirit => {
@@ -315,87 +381,6 @@ router.get('/recommendations/:userId', async (req, res) => {
   }
 });
 
-// GET all notes for a user (Joined with spirit metadata)
-router.get('/notes/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
-      .orderBy('createdAt', 'desc')
-      .get();
-    
-    if (notesSnapshot.empty) {
-      return res.json({ success: true, notes: [] });
-    }
-
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spiritsSnapshot = await db.collection('spirits').get();
-    const spiritsMap = {};
-    spiritsSnapshot.forEach(doc => {
-      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
-    });
-
-    const notes = notesSnapshot.docs.map(doc => {
-      const noteData = doc.data();
-      const spiritId = noteData.spirit_id;
-      const spiritInfo = spiritId ? spiritsMap[spiritId] : null;
-
-      return {
-        id: doc.id,
-        ...noteData,
-        name: spiritInfo?.name || noteData.name,
-        distillery: spiritInfo?.distillery || noteData.distillery,
-        category: spiritInfo?.category || noteData.category,
-        abv: spiritInfo?.abv || noteData.abv,
-        volume: spiritInfo?.volume || noteData.volume,
-        image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
-      };
-    });
-
-    res.json({ success: true, notes });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET a single note detail
-router.get('/notes/:userId/:noteId', async (req, res) => {
-  try {
-    const { userId, noteId } = req.params;
-    const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
-    
-    if (!noteDoc.exists) {
-      return res.status(404).json({ error: 'Note not found' });
-    }
-
-    const noteData = noteDoc.data();
-    const spiritId = noteData.spirit_id;
-    
-    let spiritInfo = null;
-    if (spiritId) {
-      const spiritDoc = await db.collection('spirits').doc(spiritId).get();
-      if (spiritDoc.exists) {
-        const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
-      }
-    }
-
-    const enrichedNote = {
-      id: noteDoc.id,
-      ...noteData,
-      name: spiritInfo?.name || noteData.name,
-      distillery: spiritInfo?.distillery || noteData.distillery,
-      category: spiritInfo?.category || noteData.category,
-      abv: spiritInfo?.abv || noteData.abv,
-      volume: spiritInfo?.volume || noteData.volume,
-      image: noteData.imageUrl || spiritInfo?.image || noteData.image || null
-    };
-
-    res.json({ success: true, note: enrichedNote });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // DELETE a note
 router.delete('/notes/:userId/:noteId', async (req, res) => {
   try {
@@ -411,7 +396,6 @@ router.delete('/notes/:userId/:noteId', async (req, res) => {
 router.post('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
     let recs = [];
 
     let userDNA = null;
@@ -431,11 +415,12 @@ router.post('/recommendations/:userId', async (req, res) => {
       }
     }
 
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     const allSpiritsSnapshot = await db.collection('spirits').get();
     const candidates = [];
     
     allSpiritsSnapshot.forEach(doc => {
-      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
       
       if (userDNA && spiritData.flavor_axes) {
         if (!tastedSpiritIds.has(doc.id)) {
@@ -536,6 +521,8 @@ app.use('/', router);
 
 // Export the function
 exports.api = onRequest({
-  secrets: ["GEMINI_API_KEY"],
+  secrets: ["GEMINI_API_KEY"], // Use secrets for Gemini API key
+  cors: true,
+  region: "asia-northeast3",
   invoker: "public"
 }, app);

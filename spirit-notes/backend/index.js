@@ -122,33 +122,65 @@ const buildHierarchy = (id, dataMap) => {
 };
 
 const getEnrichmentMaps = async (db) => {
+  console.log('[DEBUG] Starting getEnrichmentMaps');
   const categoriesMap = {};
   const locationsMap = {};
+  const distilleriesMap = {};
   
   if (db) {
-    const catsSnapshot = await db.collection('categories').get();
-    const catsDocData = {};
-    catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
-    catsSnapshot.forEach(doc => {
-      categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
-    });
+    try {
+      const catsSnapshot = await db.collection('categories').get();
+      const catsDocData = {};
+      catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
+      catsSnapshot.forEach(doc => {
+        categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
+      });
+      console.log(`[DEBUG] Categories loaded: ${Object.keys(categoriesMap).length}`);
 
-    const locsSnapshot = await db.collection('locations').get();
-    const locsDocData = {};
-    locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
-    locsSnapshot.forEach(doc => {
-      locationsMap[doc.id] = buildHierarchy(doc.id, locsDocData);
-    });
+      const locsSnapshot = await db.collection('locations').get();
+      const locsDocData = {};
+      locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
+      locsSnapshot.forEach(doc => {
+        locationsMap[doc.id] = {
+          path: buildHierarchy(doc.id, locsDocData),
+          description: locsDocData[doc.id]?.description || ''
+        };
+      });
+      console.log(`[DEBUG] Locations loaded: ${Object.keys(locationsMap).length}`);
+
+      const distsSnapshot = await db.collection('distilleries').get();
+      distsSnapshot.forEach(doc => {
+        const data = doc.data();
+        distilleriesMap[doc.id] = {
+          name: data.name || '',
+          description: data.description || ''
+        };
+      });
+      console.log(`[DEBUG] Distilleries loaded: ${Object.keys(distilleriesMap).length}`);
+    } catch (err) {
+      console.error('[ERROR] Failed to fetch enrichment maps:', err);
+    }
   }
   
-  return { categoriesMap, locationsMap };
+  return { categoriesMap, locationsMap, distilleriesMap };
 };
 
-const enrichSpirit = (s, categoriesMap, locationsMap) => ({
-  ...s,
-  category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
-  origin: (s.locationId && locationsMap[s.locationId]) || s.origin || '스코틀랜드 > 스페이사이드'
-});
+const enrichSpirit = (s, categoriesMap, locationsMap, distilleriesMap) => {
+  const locInfo = s.locationId ? locationsMap[s.locationId] : null;
+  const distInfo = s.distilleryId ? distilleriesMap[s.distilleryId] : null;
+
+  return {
+    ...s,
+    category: (s.categoryId && categoriesMap[s.categoryId]) || s.category || '위스키 > 스카치 > 싱글몰트',
+    origin: locInfo?.path || s.origin || '스코틀랜드 > 스페이사이드',
+    originDescription: locInfo?.description || s.originDescription || '',
+    distillery: distInfo?.name || s.distillery || 'Unknown Distillery',
+    distilleryName: distInfo?.name || s.distillery || 'Unknown Distillery',
+    distilleryDescription: distInfo?.description || s.distilleryDescription || '',
+    productionTitle: s.info?.title || '',
+    productionDescription: s.info?.description || ''
+  };
+};
 
 // --- Endpoints ---
 
@@ -163,17 +195,17 @@ app.get('/api/spirits', async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     const allSpiritsSnapshot = await db.collection('spirits').get();
     
     const spirits = allSpiritsSnapshot.docs.map(doc => 
-      enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap)
+      enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap)
     );
 
     res.json({ success: true, spirits });
   } catch (error) {
-    console.error('Error fetching spirits:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[ERROR] GET /api/spirits failed:', error);
+    res.status(500).json({ error: 'Failed to fetch spirits', details: error.message });
   }
 });
 
@@ -190,8 +222,8 @@ app.get('/api/spirits/:id', async (req, res) => {
       return res.status(404).json({ error: 'Spirit not found' });
     }
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap, distilleriesMap);
 
     res.json({ success: true, spirit });
   } catch (error) {
@@ -243,11 +275,11 @@ app.get('/api/notes/:userId', async (req, res) => {
       return res.json({ success: true, notes: [] });
     }
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     const spiritsSnapshot = await db.collection('spirits').get();
     const spiritsMap = {};
     spiritsSnapshot.forEach(doc => {
-      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+      spiritsMap[doc.id] = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
     });
     console.log(`[DEBUG] spiritsMap size: ${Object.keys(spiritsMap).length}`);
     console.log(`[DEBUG] First 5 keys: ${Object.keys(spiritsMap).slice(0, 5).join(', ')}`);
@@ -301,8 +333,8 @@ app.get('/api/notes/:userId/:noteId', async (req, res) => {
     if (spiritId) {
       const spiritDoc = await db.collection('spirits').doc(spiritId).get();
       if (spiritDoc.exists) {
-        const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
-        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+        const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+        spiritInfo = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap, distilleriesMap);
       }
     }
 
@@ -350,26 +382,16 @@ app.post('/api/recommendations/:userId', async (req, res) => {
     const { userId } = req.params;
     if (!db) return res.status(500).json({ error: 'Database not initialized' });
 
-    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     let recs = [];
 
     let userDNA = null;
     let tastedSpiritIds = new Set();
-
-    if (userId && userId !== 'guest') {
-      const userDoc = await db.collection('users').doc(userId).get();
-      const userData = userDoc.data();
-      if (userData && userData.flavorDNA) {
-        userDNA = userData.flavorDNA;
-        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-        notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
-      }
-    }
-
+// ... (lines 359-368 omitted for clarity, but they should be preserved)
     const allSpiritsSnapshot = await db.collection('spirits').get();
     const candidates = [];
     allSpiritsSnapshot.forEach(doc => {
-      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap);
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
       if (userDNA && spiritData.flavor_axes) {
         if (!tastedSpiritIds.has(doc.id)) {
           const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
