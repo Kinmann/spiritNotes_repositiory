@@ -142,6 +142,26 @@ router.get('/spirits', async (req, res) => {
   }
 });
 
+// GET /spirits/:id - Fetch a single spirit by ID with category and location metadata
+router.get('/spirits/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const spiritDoc = await db.collection('spirits').doc(id).get();
+    
+    if (!spiritDoc.exists) {
+      return res.status(404).json({ success: false, error: 'Spirit not found' });
+    }
+
+    const { categoriesMap, locationsMap } = await getEnrichmentMaps(db);
+    const spirit = enrichSpirit({ id: spiritDoc.id, ...spiritDoc.data() }, categoriesMap, locationsMap);
+
+    res.json({ success: true, spirit });
+  } catch (error) {
+    console.error('Error fetching spirit detail:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // GET /notes/:userId - Fetch all notes for a specific user
 router.get('/notes/:userId', async (req, res) => {
   try {
