@@ -434,9 +434,9 @@ router.post('/recommendations/:userId', async (req, res) => {
     });
 
     candidates.sort((a, b) => b.similarity - a.similarity);
-    const top3 = candidates.slice(0, 3);
+    const top4 = candidates.slice(0, 4);
     
-    if (top3.length === 0) {
+    if (top4.length === 0) {
       return res.json({ success: true, recommendations: [] });
     }
 
@@ -444,7 +444,7 @@ router.post('/recommendations/:userId', async (req, res) => {
       // Use the lazy-loaded genAI
       const model = getGenAI().getGenerativeModel({ model: "gemini-1.5-flash" });
       const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
-      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
       
       const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
 
@@ -453,7 +453,7 @@ router.post('/recommendations/:userId', async (req, res) => {
       const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
       const aiRecs = JSON.parse(jsonStr);
 
-      recs = top3.map(spirit => {
+      recs = top4.map(spirit => {
         const aiRec = aiRecs.find(r => r.id === spirit.id);
         return {
           ...spirit,
@@ -463,7 +463,7 @@ router.post('/recommendations/:userId', async (req, res) => {
       });
     } catch (aiError) {
       console.error("AI Recommendation error:", aiError);
-      recs = top3.map(c => ({
+      recs = top4.map(c => ({
         ...c,
         reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
         matchRate: Math.round(c.similarity * 100)

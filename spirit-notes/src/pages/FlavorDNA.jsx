@@ -63,7 +63,7 @@ const FlavorDNA = () => {
       try {
         const recData = await getRecommendations(uid);
         if (recData && recData.recommendations) {
-          setRecommendations(recData.recommendations.slice(0, 5));
+          setRecommendations(recData.recommendations.slice(0, 4));
         }
       } catch (e) {
         console.error('Recommendations fetch failed:', e);
