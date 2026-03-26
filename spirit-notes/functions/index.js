@@ -21,13 +21,18 @@ app.use(express.json());
 
 // Gemini AI 초기화 (Secret Manager에서 환경변수로 제공됨)
 // Lazy initialization helper for genAI
-const getGenAI = () => {
+// Initialize Gemini AI lazily to ensure secrets are loaded
+let _genAIInstance = null;
+function getGenAI() {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (apiKey) {
-    return new GoogleGenerativeAI(apiKey);
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not set in environment');
   }
-  return null;
-};
+  if (!_genAIInstance) {
+    _genAIInstance = new GoogleGenerativeAI(apiKey);
+  }
+  return _genAIInstance;
+}
 
 // --- Helper Functions ---
 
@@ -146,9 +151,11 @@ router.get('/spirits', async (req, res) => {
 router.get('/spirits/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`Fetching spirit detail for ID: ${id}`);
     const spiritDoc = await db.collection('spirits').doc(id).get();
     
     if (!spiritDoc.exists) {
+      console.warn(`Spirit not found with ID: ${id}`);
       return res.status(404).json({ success: false, error: 'Spirit not found' });
     }
 
@@ -274,27 +281,24 @@ router.get('/recommendations/:userId', async (req, res) => {
 
     // Get AI-powered recommendation reasons if Gemini is configured
     let recs = [];
-    const genAI = getGenAI();
-    if (genAI) {
-      try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
-        const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category || 'Unknown'})`).join('\n');
-        const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 Japanese or Korean sentences (based on context, default to Korean). Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
+    try {
+      const model = getGenAI().getGenerativeModel({ model: "gemini-2.0-flash" });
+      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
+      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category || 'Unknown'})`).join('\n');
+      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 Japanese or Korean sentences (based on context, default to Korean). Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-        recs = JSON.parse(jsonStr);
-      } catch (aiError) {
-        console.error("AI Recommendation error:", aiError);
-        // Fallback if AI generation fails
-        recs = top3.map(c => ({
-          id: c.id,
-          name: c.name,
-          reason: `${c.category || ' whiskey'} 카테고리에서 추천하는 특별한 주류입니다.`
-        }));
-      }
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+      recs = JSON.parse(jsonStr);
+    } catch (aiError) {
+      console.error("AI Recommendation error:", aiError);
+      // Fallback if AI generation fails
+      recs = top3.map(c => ({
+        id: c.id,
+        name: c.name,
+        reason: `${c.category || ' whiskey'} 카테고리에서 추천하는 특별한 주류입니다.`
+      }));
     }
 
     const finalRecs = top3.map((spirit, i) => {
@@ -451,42 +455,34 @@ router.post('/recommendations/:userId', async (req, res) => {
       return res.json({ success: true, recommendations: [] });
     }
 
-    const genAI = getGenAI();
-    if (!genAI) {
+    try {
+      // Use the lazy-loaded genAI
+      const model = getGenAI().getGenerativeModel({ model: "gemini-1.5-flash" });
+      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
+      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+      
+      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+      const aiRecs = JSON.parse(jsonStr);
+
+      recs = top3.map(spirit => {
+        const aiRec = aiRecs.find(r => r.id === spirit.id);
+        return {
+          ...spirit,
+          reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
+          matchRate: Math.round(spirit.similarity * 100)
+        };
+      });
+    } catch (aiError) {
+      console.error("AI Recommendation error:", aiError);
       recs = top3.map(c => ({
         ...c,
-        reason: `${c.category || '취향'} 카테고리에서 당신의 취향과 ${(c.similarity * 100).toFixed(0)}% 일치하는 추천작입니다.`,
+        reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
         matchRate: Math.round(c.similarity * 100)
       }));
-    } else {
-      try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
-        const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
-        
-        const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-        const aiRecs = JSON.parse(jsonStr);
-
-        recs = top3.map(spirit => {
-          const aiRec = aiRecs.find(r => r.id === spirit.id);
-          return {
-            ...spirit,
-            reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
-            matchRate: Math.round(spirit.similarity * 100)
-          };
-        });
-      } catch (aiError) {
-        console.error("AI Recommendation error:", aiError);
-        recs = top3.map(c => ({
-          ...c,
-          reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
-          matchRate: Math.round(c.similarity * 100)
-        }));
-      }
     }
 
     res.json({ success: true, recommendations: recs });
