@@ -358,6 +358,11 @@ const NewNote = () => {
               </div>
             </div>
 
+        </div>
+
+        {/* Right Column: Info & Flavor */}
+        <div className={styles.rightCol}>
+
           {/* Search Encyclopedia */}
           {!isEdit && (
             <div className={styles.searchWrapper}>
@@ -391,10 +396,7 @@ const NewNote = () => {
               )}
             </div>
           )}
-        </div>
 
-        {/* Right Column: Info & Flavor */}
-        <div className={styles.rightCol}>
           {/* Spirit Info Fields */}
           <div className={styles.infoFields}>
             <div className={styles.infoFieldRow}>
