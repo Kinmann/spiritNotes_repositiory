@@ -514,17 +514,41 @@ router.post('/flavor-dna/:userId', async (req, res) => {
       console.log(`[Functions] 7. Persona added to updateData`);
     }
     
-    if (recommendations && recommendations.length > 0) {
-      updateData.recommendations = recommendations;
-      console.log(`[Functions] 7a. Recommendations added to updateData`);
-    }
-
     console.log(`[Functions] 8. Writing to Firestore user doc: ${userId}`);
     console.log(`[Functions] Data to set:`, JSON.stringify(updateData, null, 2));
     
+    // 8. Update User Main Doc (DNA, Persona)
     await db.collection('users').doc(userId).set(updateData, { merge: true });
+
+    // 9. Update Recommendations Sub-collection
+    if (recommendations && recommendations.length > 0) {
+      console.log(`[Functions] 10. Updating recommendations sub-collection for ${userId}`);
+      const recsColRef = db.collection('users').doc(userId).collection('recommendations');
+      
+      // Clear old recommendations first (optional, but cleaner)
+      const oldRecsSnapshot = await recsColRef.get();
+      const batch = db.batch();
+      oldRecsSnapshot.forEach(doc => batch.delete(doc.ref));
+      
+      // Add new recommendations (Top 4)
+      recommendations.forEach(rec => {
+        const docRef = recsColRef.doc(rec.id);
+        batch.set(docRef, {
+          ...rec,
+          createdAt: FieldValue.serverTimestamp()
+        });
+      });
+
+      // Also ensure the old 'recommendations' field is removed from user doc
+      batch.update(db.collection('users').doc(userId), {
+        recommendations: FieldValue.delete()
+      });
+
+      await batch.commit();
+      console.log(`[Functions] 11. Recommendations sub-collection updated SUCCESS`);
+    }
     
-    console.log(`[Functions] 9. Firestore update SUCCESS`);
+    console.log(`[Functions] 12. Firestore update process overall SUCCESS`);
     res.json({ success: true, flavorDNA, persona });
 
   } catch (error) {
@@ -539,9 +563,8 @@ router.post('/flavor-dna/:userId', async (req, res) => {
   }
 });
 
-// GET /recommendations/:userId - Redirect to optimized recommendation logic
+// GET /recommendations/:userId - Optimized logic reading from sub-collection
 router.get('/recommendations/:userId', async (req, res) => {
-  // GET 요청도 최적화된 로직(POST와 동일)을 사용하도록 처리
   try {
     const { userId } = req.params;
     if (!userId || userId === 'guest') {
@@ -549,22 +572,53 @@ router.get('/recommendations/:userId', async (req, res) => {
       return res.json({ success: true, recommendations: recs });
     }
 
-    const userDoc = await db.collection('users').doc(userId).get();
+    // 1. Try to read from sub-collection first
+    const recsSnapshot = await db.collection('users').doc(userId).collection('recommendations')
+      .orderBy('createdAt', 'desc')
+      .limit(4)
+      .get();
+    
+    if (!recsSnapshot.empty) {
+      console.log(`[Functions] Returning recommendations from sub-collection for ${userId}`);
+      const recommendations = recsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return res.json({ success: true, recommendations });
+    }
+
+    // 2. Migration: Check if old field exists
+    const userDocRef = db.collection('users').doc(userId);
+    const userDoc = await userDocRef.get();
     const userData = userDoc.data();
     
     if (userData && userData.recommendations && userData.recommendations.length > 0) {
-      return res.json({ success: true, recommendations: userData.recommendations });
+      console.log(`[Functions] Migrating recommendations from field to sub-collection for ${userId}`);
+      const batch = db.batch();
+      userData.recommendations.slice(0, 4).forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
+      });
+      batch.update(userDocRef, { recommendations: FieldValue.delete() });
+      await batch.commit();
+
+      return res.json({ success: true, recommendations: userData.recommendations.slice(0, 4) });
     }
 
+    // 3. Fallback: Generate if missing
+    console.log(`[Functions] No recommendations found for ${userId}. Generating...`);
     const userDNA = userData?.flavorDNA || null;
     const recs = await generateRecommendations(userId, userDNA);
     
     if (recs && recs.length > 0) {
-      await db.collection('users').doc(userId).set({ recommendations: recs }, { merge: true });
+      const batch = db.batch();
+      recs.forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
+      });
+      await batch.commit();
     }
 
     res.json({ success: true, recommendations: recs });
   } catch (error) {
+    console.error('Error in GET /recommendations/:userId:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -580,7 +634,7 @@ router.delete('/notes/:userId/:noteId', async (req, res) => {
   }
 });
 
-// POST /recommendations/:userId - Fetch pre-generated recommendations or generate if missing
+// POST /recommendations/:userId - Fetch pre-generated recommendations (from sub-collection)
 router.post('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -590,23 +644,37 @@ router.post('/recommendations/:userId', async (req, res) => {
       return res.json({ success: true, recommendations: recs });
     }
 
+    // Try reading from sub-collection first
+    const recsSnapshot = await db.collection('users').doc(userId).collection('recommendations')
+      .orderBy('createdAt', 'desc')
+      .limit(4)
+      .get();
+    
+    if (!recsSnapshot.empty) {
+      console.log(`[Functions] [POST] Returning cached recommendations from sub-collection for ${userId}`);
+      const recommendations = recsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return res.json({ success: true, recommendations });
+    }
+
+    // Fallback to GET logic handling migration/generation
     const userDoc = await db.collection('users').doc(userId).get();
     const userData = userDoc.data();
     
-    // 유효한 캐시 데이터가 있으면 반환
-    if (userData && userData.recommendations && userData.recommendations.length > 0) {
-      console.log(`[Functions] Returning cached recommendations for ${userId}`);
-      return res.json({ success: true, recommendations: userData.recommendations });
-    }
-
-    // 캐시가 없으면 생성 (첫 방문 등)
-    console.log(`[Functions] No cached recommendations for ${userId}. Generating now...`);
+    // 유효한 필드 데이터가 있으면 직접 마이그레이션 할 수도 있지만, 
+    // 일관성을 위해 GET 로직에서 이미 처리된 경로와 유사하게 생성 또는 조회 수행
     const userDNA = userData?.flavorDNA || null;
     const recs = await generateRecommendations(userId, userDNA);
     
-    // 생성된 결과 저장
     if (recs && recs.length > 0) {
-      await db.collection('users').doc(userId).update({ recommendations: recs });
+      const batch = db.batch();
+      const userDocRef = db.collection('users').doc(userId);
+      recs.forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
+      });
+      // 혹시라도 필드 데이터가 있었다면 정리
+      batch.update(userDocRef, { recommendations: FieldValue.delete() });
+      await batch.commit();
     }
 
     res.json({ success: true, recommendations: recs });
