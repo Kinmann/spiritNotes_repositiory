@@ -268,6 +268,85 @@ const enrichSpirit = (s, categoriesMap, locationsMap, distilleriesMap) => {
   };
 };
 
+/**
+ * Generate recommendations based on user DNA and current spirits database
+ */
+const generateRecommendations = async (userId, userDNA) => {
+  try {
+    const tastedSpiritIds = new Set();
+    if (userId && userId !== 'guest') {
+      const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+      notesSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
+      });
+    }
+
+    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
+    const allSpiritsSnapshot = await db.collection('spirits').get();
+    const candidates = [];
+
+    allSpiritsSnapshot.forEach(doc => {
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
+
+      if (userDNA && spiritData.flavor_axes) {
+        if (!tastedSpiritIds.has(doc.id)) {
+          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
+          candidates.push({ ...spiritData, similarity });
+        }
+      } else {
+        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
+      }
+    });
+
+    candidates.sort((a, b) => b.similarity - a.similarity);
+    const top4 = candidates.slice(0, 4);
+
+    if (top4.length === 0) return [];
+
+    try {
+      const genAI = getGenAI();
+      if (!genAI) throw new Error('GenAI not initialized');
+      
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
+      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+
+      const prompt = `
+        ${dnaInfo}
+        Candidates:
+        ${candidatesText}
+        Provide a unique recommendation reason for each in Korean (1-2 sentences). 
+        Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]
+      `;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+      const aiRecs = JSON.parse(jsonStr);
+
+      return top4.map(spirit => {
+        const aiRec = aiRecs.find(r => r.id === spirit.id);
+        return {
+          ...spirit,
+          reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
+          matchRate: Math.round(spirit.similarity * 100)
+        };
+      });
+    } catch (aiError) {
+      console.error("[generateRecommendations AI Error]:", aiError);
+      return top4.map(c => ({
+        ...c,
+        reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
+        matchRate: Math.round(c.similarity * 100)
+      }));
+    }
+  } catch (error) {
+    console.error('[generateRecommendations Error]:', error);
+    return [];
+  }
+};
+
 // --- API Routes ---
 
 const router = express.Router();
@@ -422,6 +501,9 @@ router.post('/flavor-dna/:userId', async (req, res) => {
     const persona = await generatePersona(flavorDNA);
     console.log(`[Functions] 6. Persona result:`, persona ? persona.title : 'NULL');
 
+    console.log(`[Functions] 6a. Generating Recommendations in advance`);
+    const recommendations = await generateRecommendations(userId, flavorDNA);
+
     const updateData = {
       flavorDNA,
       lastUpdated: FieldValue.serverTimestamp()
@@ -430,6 +512,11 @@ router.post('/flavor-dna/:userId', async (req, res) => {
     if (persona) {
       updateData.persona = persona;
       console.log(`[Functions] 7. Persona added to updateData`);
+    }
+    
+    if (recommendations && recommendations.length > 0) {
+      updateData.recommendations = recommendations;
+      console.log(`[Functions] 7a. Recommendations added to updateData`);
     }
 
     console.log(`[Functions] 8. Writing to Firestore user doc: ${userId}`);
@@ -452,79 +539,33 @@ router.post('/flavor-dna/:userId', async (req, res) => {
   }
 });
 
-// Calculate recommendations based on Flavor DNA
+// GET /recommendations/:userId - Redirect to optimized recommendation logic
 router.get('/recommendations/:userId', async (req, res) => {
+  // GET 요청도 최적화된 로직(POST와 동일)을 사용하도록 처리
   try {
     const { userId } = req.params;
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userDNA = userDoc.data()?.flavorDNA;
-
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-    const tastedSpiritIds = new Set();
-    notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
-
-    const spiritsSnapshot = await db.collection('spirits').get();
-    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    const spirits = spiritsSnapshot.docs.map(doc => enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap));
-
-    // Simple similarity calculation (Euclidean distance) if DNA exists
-    const scoredSpirits = spirits.map(spirit => {
-      let similarity = 0;
-      if (userDNA && spirit.flavor_axes) {
-        let sumSquaredDiff = 0;
-        let count = 0;
-        Object.keys(userDNA).forEach(key => {
-          if (spirit.flavor_axes[key] !== undefined) {
-            sumSquaredDiff += Math.pow(userDNA[key] - spirit.flavor_axes[key], 2);
-            count++;
-          }
-        });
-        similarity = count > 0 ? 1 / (1 + Math.sqrt(sumSquaredDiff)) : 0;
-      } else {
-        // Fallback for new users: popularity or random
-        similarity = 0.5;
-      }
-      return { ...spirit, similarity };
-    });
-
-    // Sort by similarity and take top 3
-    const top3 = scoredSpirits
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 3);
-
-    // Get AI-powered recommendation reasons if Gemini is configured
-    let recs = [];
-    try {
-      const model = getGenAI().getGenerativeModel({ model: "gemini-2.0-flash" });
-      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
-      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category || 'Unknown'})`).join('\n');
-      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 Japanese or Korean sentences (based on context, default to Korean). Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-      recs = JSON.parse(jsonStr);
-    } catch (aiError) {
-      console.error("AI Recommendation error:", aiError);
-      // Fallback if AI generation fails
-      recs = top3.map(c => ({
-        id: c.id,
-        name: c.name,
-        reason: `${c.category || ' whiskey'} 카테고리에서 추천하는 특별한 주류입니다.`
-      }));
+    if (!userId || userId === 'guest') {
+      const recs = await generateRecommendations('guest', null);
+      return res.json({ success: true, recommendations: recs });
     }
 
-    const finalRecs = top3.map((spirit, i) => {
-      const aiRec = Array.isArray(recs) ? recs.find(r => r.id === spirit.id) || recs[i] : {};
-      return {
-        ...spirit,
-        reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
-        matchRate: Math.round(spirit.similarity * 100)
-      };
-    });
-    res.json({ success: true, recommendations: finalRecs });
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    
+    if (userData && userData.recommendations && userData.recommendations.length > 0) {
+      return res.json({ success: true, recommendations: userData.recommendations });
+    }
+
+    const userDNA = userData?.flavorDNA || null;
+    const recs = await generateRecommendations(userId, userDNA);
+    
+    if (recs && recs.length > 0) {
+      await db.collection('users').doc(userId).set({ recommendations: recs }, { merge: true });
+    }
+
+    res.json({ success: true, recommendations: recs });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -539,87 +580,38 @@ router.delete('/notes/:userId/:noteId', async (req, res) => {
   }
 });
 
-// POST /recommendations/:userId - Generate personalized recommendations
+// POST /recommendations/:userId - Fetch pre-generated recommendations or generate if missing
 router.post('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    let recs = [];
-
-    let userDNA = null;
-    let tastedSpiritIds = new Set();
-
-    if (userId && userId !== 'guest') {
-      const userDoc = await db.collection('users').doc(userId).get();
-      const userData = userDoc.data();
-      if (userData && userData.flavorDNA) {
-        userDNA = userData.flavorDNA;
-        // Query user's subcollection for tasted spirits
-        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-        notesSnapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
-        });
-      }
+    
+    if (!userId || userId === 'guest') {
+      const recs = await generateRecommendations('guest', null);
+      return res.json({ success: true, recommendations: recs });
     }
 
-    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    const allSpiritsSnapshot = await db.collection('spirits').get();
-    const candidates = [];
-
-    allSpiritsSnapshot.forEach(doc => {
-      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
-
-      if (userDNA && spiritData.flavor_axes) {
-        if (!tastedSpiritIds.has(doc.id)) {
-          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
-          candidates.push({ ...spiritData, similarity });
-        }
-      } else {
-        // Random similarity for users without DNA
-        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
-      }
-    });
-
-    candidates.sort((a, b) => b.similarity - a.similarity);
-    const top4 = candidates.slice(0, 4);
-
-    if (top4.length === 0) {
-      return res.json({ success: true, recommendations: [] });
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    
+    // 유효한 캐시 데이터가 있으면 반환
+    if (userData && userData.recommendations && userData.recommendations.length > 0) {
+      console.log(`[Functions] Returning cached recommendations for ${userId}`);
+      return res.json({ success: true, recommendations: userData.recommendations });
     }
 
-    try {
-      // Use the lazy-loaded genAI
-      const model = getGenAI().getGenerativeModel({ model: "gemini-2.5-flash" });
-      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
-      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
-
-      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-      const aiRecs = JSON.parse(jsonStr);
-
-      recs = top4.map(spirit => {
-        const aiRec = aiRecs.find(r => r.id === spirit.id);
-        return {
-          ...spirit,
-          reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
-          matchRate: Math.round(spirit.similarity * 100)
-        };
-      });
-    } catch (aiError) {
-      console.error("AI Recommendation error:", aiError);
-      recs = top4.map(c => ({
-        ...c,
-        reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
-        matchRate: Math.round(c.similarity * 100)
-      }));
+    // 캐시가 없으면 생성 (첫 방문 등)
+    console.log(`[Functions] No cached recommendations for ${userId}. Generating now...`);
+    const userDNA = userData?.flavorDNA || null;
+    const recs = await generateRecommendations(userId, userDNA);
+    
+    // 생성된 결과 저장
+    if (recs && recs.length > 0) {
+      await db.collection('users').doc(userId).update({ recommendations: recs });
     }
 
     res.json({ success: true, recommendations: recs });
   } catch (error) {
-    console.error('Error generating recommendations:', error);
+    console.error('Error in POST /recommendations/:userId:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

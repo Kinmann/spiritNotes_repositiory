@@ -23,58 +23,60 @@ const FlavorDNA = () => {
     const uid = auth.currentUser.uid;
     
     try {
-      // 1. Fetch User DNA
+      // 1. Fetch User Doc (DNA + Persona Cached)
       const userDoc = await getDoc(doc(db, 'users', uid));
+      let userData = null;
+      
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        if (data.flavorDNA) {
+        userData = userDoc.data();
+        
+        // Update DNA state if exists
+        if (userData.flavorDNA) {
           const mappedData = [
-            { subject: 'Peaty', value: data.flavorDNA.peat || 0 },
-            { subject: 'Floral', value: data.flavorDNA.floral || 0 },
-            { subject: 'Fruity', value: data.flavorDNA.fruity || 0 },
-            { subject: 'Woody', value: data.flavorDNA.woody || 0 },
-            { subject: 'Spicy', value: data.flavorDNA.spicy || 0 },
-            { subject: 'Sweet', value: data.flavorDNA.sweet || 0 },
+            { subject: 'Peaty', value: userData.flavorDNA.peat || 0 },
+            { subject: 'Floral', value: userData.flavorDNA.floral || 0 },
+            { subject: 'Fruity', value: userData.flavorDNA.fruity || 0 },
+            { subject: 'Woody', value: userData.flavorDNA.woody || 0 },
+            { subject: 'Spicy', value: userData.flavorDNA.spicy || 0 },
+            { subject: 'Sweet', value: userData.flavorDNA.sweet || 0 },
           ];
           setDna(mappedData);
         }
-      }
 
-      // 2. Fetch Taste Persona
-      try {
-        const data = await getPersona(uid);
-        if (data && data.persona) {
-          console.log('[FlavorDNA Persona Received]:', data.persona);
-          setPersona(data.persona);
+        // Update Persona state if exists (Cached in User Doc)
+        if (userData.persona) {
+          console.log('[FlavorDNA] Using cached Persona from User Doc');
+          setPersona(userData.persona);
         } else {
           setPersona({
             title: 'Oak & Smoke Master',
             description: 'A deep biological mapping of your olfactory and palate preferences.'
           });
         }
-      } catch (e) {
-        console.error('Persona fetch failed:', e);
-        setPersona({
-          title: 'Oak & Smoke Master',
-          description: 'A deep biological mapping of your olfactory and palate preferences.'
-        });
       }
 
-      // 3. Fetch Recommendations
-      try {
-        const recData = await getRecommendations(uid);
-        if (recData && recData.recommendations) {
-          setRecommendations(recData.recommendations.slice(0, 4));
-        }
-      } catch (e) {
-        console.error('Recommendations fetch failed:', e);
+      // 2. Parallel Fetch: Recommendations + Stats
+      // Use Promise.all to fetch remaining data concurrently
+      const [recData, notesSnap] = await Promise.all([
+        getRecommendations(uid).catch(e => {
+          console.error('Recommendations fetch failed:', e);
+          return { recommendations: [] };
+        }),
+        getDocs(collection(db, 'users', uid, 'notes')).catch(e => {
+          console.error('Notes fetch failed:', e);
+          return { size: 0, docs: [] };
+        })
+      ]);
+
+      // Handle Recommendations
+      if (recData && recData.recommendations) {
+        setRecommendations(recData.recommendations.slice(0, 4));
       }
 
-      // 4. Fetch Stats (Note Count)
-      const notesSnap = await getDocs(collection(db, 'users', uid, 'notes'));
+      // Handle Stats
       setStats({
-        totalNotes: notesSnap.size,
-        totalBottles: Array.from(new Set(notesSnap.docs.map(doc => doc.data().name))).length
+        totalNotes: notesSnap.size || 0,
+        totalBottles: notesSnap.docs ? Array.from(new Set(notesSnap.docs.map(doc => doc.data().name))).length : 0
       });
 
     } catch (error) {
