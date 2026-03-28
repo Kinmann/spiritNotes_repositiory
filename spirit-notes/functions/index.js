@@ -218,14 +218,19 @@ const getEnrichmentMaps = async (db) => {
 
   if (db) {
     try {
-      const catsSnapshot = await db.collection('categories').get();
+      // Parallel fetch of all metadata collections
+      const [catsSnapshot, locsSnapshot, distsSnapshot] = await Promise.all([
+        db.collection('categories').get(),
+        db.collection('locations').get(),
+        db.collection('distilleries').get()
+      ]);
+
       const catsDocData = {};
       catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
       catsSnapshot.forEach(doc => {
         categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
       });
 
-      const locsSnapshot = await db.collection('locations').get();
       const locsDocData = {};
       locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
       locsSnapshot.forEach(doc => {
@@ -235,7 +240,6 @@ const getEnrichmentMaps = async (db) => {
         };
       });
 
-      const distsSnapshot = await db.collection('distilleries').get();
       distsSnapshot.forEach(doc => {
         const data = doc.data();
         distilleriesMap[doc.id] = {
@@ -271,19 +275,29 @@ const enrichSpirit = (s, categoriesMap, locationsMap, distilleriesMap) => {
 /**
  * Generate recommendations based on user DNA and current spirits database
  */
-const generateRecommendations = async (userId, userDNA) => {
+const generateRecommendations = async (userId, userDNA, existingNotes = null) => {
   try {
     const tastedSpiritIds = new Set();
     if (userId && userId !== 'guest') {
-      const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-      notesSnapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
-      });
+      if (existingNotes && Array.isArray(existingNotes)) {
+        // Use provided notes to avoid re-fetching
+        existingNotes.forEach(note => {
+          if (note.spirit_id) tastedSpiritIds.add(note.spirit_id);
+        });
+      } else {
+        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+        notesSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
+        });
+      }
     }
 
-    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    const allSpiritsSnapshot = await db.collection('spirits').get();
+    // Parallel fetch of metadata and all spirits
+    const [{ categoriesMap, locationsMap, distilleriesMap }, allSpiritsSnapshot] = await Promise.all([
+      getEnrichmentMaps(db),
+      db.collection('spirits').get()
+    ]);
     const candidates = [];
 
     allSpiritsSnapshot.forEach(doc => {
@@ -486,8 +500,12 @@ router.post('/flavor-dna/:userId', async (req, res) => {
   const { userId } = req.params;
   console.log(`[Functions] >>> START POST /flavor-dna/${userId}`);
   try {
-    console.log(`[Functions] 1. Fetching notes subcollection for ${userId}`);
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+    // Parallel fetch: current user data and their notes
+    console.log(`[Functions] 1. Parallel fetch User Doc and Notes`);
+    const [userDoc, notesSnapshot] = await Promise.all([
+      db.collection('users').doc(userId).get(),
+      db.collection('users').doc(userId).collection('notes').get()
+    ]);
     
     console.log(`[Functions] 2. Mapping notes data (Count: ${notesSnapshot.size})`);
     const notes = notesSnapshot.docs.map(doc => doc.data());
@@ -496,13 +514,32 @@ router.post('/flavor-dna/:userId', async (req, res) => {
     const flavorDNA = calculateFlavorDNA(notes);
     console.log(`[Functions] 4. DNA Calculated:`, JSON.stringify(flavorDNA));
 
-    // Flavor DNA가 업데이트될 때 페르소나도 함께 생성하여 저장
-    console.log(`[Functions] 5. Calling generatePersona`);
-    const persona = await generatePersona(flavorDNA);
-    console.log(`[Functions] 6. Persona result:`, persona ? persona.title : 'NULL');
+    // Axis Change Detection
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const oldDNA = userData.flavorDNA || null;
+    
+    const dnaChanged = !oldDNA || 
+      ['peat', 'floral', 'fruity', 'woody', 'spicy', 'sweet'].some(k => 
+        Math.abs((oldDNA[k] || 0) - (flavorDNA[k] || 0)) > 0.05
+      );
 
-    console.log(`[Functions] 6a. Generating Recommendations in advance`);
-    const recommendations = await generateRecommendations(userId, flavorDNA);
+    let persona = userData.persona || null;
+    let recommendations = [];
+
+    if (dnaChanged) {
+      console.log(`[Functions] DNA Changed significantly. Regenerating Persona and Recommendations...`);
+      // Parallel execution of Persona and Recommendations generation
+      const [newPersona, newRecs] = await Promise.all([
+        generatePersona(flavorDNA),
+        generateRecommendations(userId, flavorDNA, notes) // Pass existing notes
+      ]);
+      
+      persona = newPersona;
+      recommendations = newRecs;
+      console.log(`[Functions] Parallel AI tasks completed SUCCESS`);
+    } else {
+      console.log(`[Functions] DNA changes were minimal. Skipping expensive AI generation.`);
+    }
 
     const updateData = {
       flavorDNA,
@@ -511,26 +548,20 @@ router.post('/flavor-dna/:userId', async (req, res) => {
 
     if (persona) {
       updateData.persona = persona;
-      console.log(`[Functions] 7. Persona added to updateData`);
     }
     
-    console.log(`[Functions] 8. Writing to Firestore user doc: ${userId}`);
-    console.log(`[Functions] Data to set:`, JSON.stringify(updateData, null, 2));
-    
-    // 8. Update User Main Doc (DNA, Persona)
+    console.log(`[Functions] Update UI-critical fields first`);
     await db.collection('users').doc(userId).set(updateData, { merge: true });
 
-    // 9. Update Recommendations Sub-collection
-    if (recommendations && recommendations.length > 0) {
-      console.log(`[Functions] 10. Updating recommendations sub-collection for ${userId}`);
+    // 9. Update Recommendations Sub-collection in background (if changed)
+    if (dnaChanged && recommendations && recommendations.length > 0) {
+      console.log(`[Functions] Updating recommendations sub-collection for ${userId}`);
       const recsColRef = db.collection('users').doc(userId).collection('recommendations');
       
-      // Clear old recommendations first (optional, but cleaner)
       const oldRecsSnapshot = await recsColRef.get();
       const batch = db.batch();
       oldRecsSnapshot.forEach(doc => batch.delete(doc.ref));
       
-      // Add new recommendations (Top 4)
       recommendations.forEach(rec => {
         const docRef = recsColRef.doc(rec.id);
         batch.set(docRef, {
@@ -539,26 +570,23 @@ router.post('/flavor-dna/:userId', async (req, res) => {
         });
       });
 
-      // Also ensure the old 'recommendations' field is removed from user doc
       batch.update(db.collection('users').doc(userId), {
         recommendations: FieldValue.delete()
       });
 
       await batch.commit();
-      console.log(`[Functions] 11. Recommendations sub-collection updated SUCCESS`);
+      console.log(`[Functions] Recommendations sub-collection updated SUCCESS`);
     }
     
-    console.log(`[Functions] 12. Firestore update process overall SUCCESS`);
-    res.json({ success: true, flavorDNA, persona });
+    console.log(`[Functions] overall SUCCESS`);
+    res.json({ success: true, flavorDNA, persona, skipAi: !dnaChanged });
 
   } catch (error) {
     console.error(`[Functions] !!! ERROR in POST /flavor-dna/${userId}:`, error.message);
-    console.error(error.stack);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      stack: error.stack,
-      step: "Check emulator logs for step number"
+      step: "Check emulator logs"
     });
   }
 });
