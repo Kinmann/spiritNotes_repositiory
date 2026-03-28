@@ -39,8 +39,22 @@ if (fs.existsSync(serviceAccountPath)) {
 
 const db = admin.apps.length > 0 ? admin.firestore() : null;
 
-// Gemini AI 초기화
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+// Gemini AI 초기화 로직 (Lazy initialization with diagnostics)
+let _genAIInstance = null;
+const getGenAI = () => {
+  if (!_genAIInstance) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('[getGenAI Error] GEMINI_API_KEY is missing in backend process.env');
+      return null;
+    }
+    // 보안을 위해 키의 일부만 노출
+    const maskedKey = `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+    console.log(`[getGenAI] API Key loaded successfully. Key: ${maskedKey}`);
+    _genAIInstance = new GoogleGenerativeAI(apiKey);
+  }
+  return _genAIInstance;
+};
 
 app.use(cors());
 app.use(express.json());
@@ -111,11 +125,16 @@ const calculateFlavorDNA = (notes) => {
  */
 const generatePersona = async (flavorDNA) => {
   try {
-    if (!flavorDNA || !genAI) return null;
+    const genAI = getGenAI();
+    if (!flavorDNA || !genAI) {
+      console.warn('[generatePersona] Skipping: flavorDNA or genAI is missing');
+      return null;
+    }
 
     const modelName = "gemini-2.5-flash";
     console.log(`[generatePersona] Calling Gemini with model: ${modelName}`);
     const model = genAI.getGenerativeModel({ model: modelName });
+    // ... (rest of prompt and generation logic)
     const prompt = `
       Analyze this Whiskey Flavor DNA with extreme precision: ${JSON.stringify(flavorDNA)}.
       The DNA consists of 6 axes: Peat, Floral, Fruity, Woody, Spicy, Sweet (Scale: 0.0 to 10.0+).
@@ -138,16 +157,29 @@ const generatePersona = async (flavorDNA) => {
     `;
 
     const result = await model.generateContent(prompt);
-    if (result && result.response) {
-      const text = result.response.text();
-      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
-      const aiPersona = JSON.parse(jsonStr);
-      if (aiPersona && aiPersona.title) {
-        return aiPersona;
-      }
+    if (!result || !result.response) {
+      console.error('[generatePersona Error] Empty response from Gemini API');
+      return null;
+    }
+
+    const text = result.response.text();
+    console.log('[generatePersona] Raw AI response:', text);
+    
+    const jsonStr = text.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonStr) {
+      console.error('[generatePersona Error] No JSON block found in response');
+      return null;
+    }
+
+    const aiPersona = JSON.parse(jsonStr);
+    if (aiPersona && aiPersona.title) {
+      console.log('[generatePersona] Success:', aiPersona.title);
+      return aiPersona;
+    } else {
+      console.error('[generatePersona Error] Parsed JSON missing title');
     }
   } catch (error) {
-    console.error('[Helper: generatePersona Error]:', error.message);
+    console.error('[generatePersona Exception]:', error.message);
   }
   return null;
 };
@@ -483,6 +515,7 @@ app.post('/api/recommendations/:userId', async (req, res) => {
     const top3 = candidates.slice(0, 3);
     if (top3.length === 0) return res.json({ success: true, recommendations: [] });
 
+    const genAI = getGenAI();
     if (!genAI) {
       console.warn('Gemini AI not initialized. Falling back to simple matching.');
       recs = top3.map(c => ({
@@ -497,16 +530,18 @@ app.post('/api/recommendations/:userId', async (req, res) => {
       const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 sentences. Output valid JSON array: [{ "id": "spiritId", "name": "Name", "reason": "Reason" }]`;
 
       try {
-        const result = await model.generateContent(prompt).catch(e => { throw e; });
+        console.log('[recommendations] Calling Gemini API...');
+        const result = await model.generateContent(prompt);
         if (result && result.response) {
           const text = result.response.text();
+          console.log('[recommendations] AI Response received');
           const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
           recs = JSON.parse(jsonStr);
         } else {
-          throw new Error('No response from AI');
+          throw new Error('Empty response from AI');
         }
       } catch (aiError) {
-        console.error('Inner AI catch:', aiError.message);
+        console.error('[recommendations API AI Error]:', aiError.message);
         recs = top3.map(c => ({
           id: c.id,
           name: c.name,

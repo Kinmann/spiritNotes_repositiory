@@ -27,25 +27,29 @@ let _genAIInstance = null;
 const getGenAI = () => {
   if (!_genAIInstance) {
     let apiKey;
+    let source = 'none';
     try {
-      // Attempt to get API key from Secret Manager (if configured)
-      // This assumes 'geminiKey' is a secret variable accessible in the environment
-      // For local development/emulators, this might throw, hence the fallback.
-      apiKey = process.env.GEMINI_API_KEY_SECRET_MANAGER; // Placeholder for actual secret manager access
-      if (!apiKey) { // Fallback if secret manager key isn't directly available or fails
-        apiKey = process.env.GEMINI_API_KEY;
-        console.log('[getGenAI] Using API key from process.env (Emulator mode or direct env var)');
+      apiKey = process.env.GEMINI_API_KEY; // Managed by Secret Manager in Prod
+      if (apiKey) {
+        source = 'Secret Manager (or Env)';
+      } else {
+        apiKey = process.env.GEMINI_API_KEY_LOCAL; // Fallback for local emulator
+        if (apiKey) source = 'process.env.LOCAL';
       }
     } catch (e) {
-      // Emulator fallback: use process.env
-      apiKey = process.env.GEMINI_API_KEY;
-      console.log('[getGenAI] Using API key from process.env (Emulator mode fallback)');
+      apiKey = process.env.GEMINI_API_KEY_LOCAL;
+      source = 'Catch Fallback (LOCAL)';
     }
 
     if (!apiKey) {
-      console.error('[Schema Error] GEMINI_API_KEY is not defined in any source');
+      console.error('[getGenAI Error] GEMINI_API_KEY is missing in both Secret and Local env.');
       return null;
     }
+
+    // 보안을 위해 키의 앞뒤 4글자만 노출하여 설정 여부 확인
+    const maskedKey = `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+    console.log(`[getGenAI] API Key loaded successfully. Source: ${source}, Key: ${maskedKey}`);
+    
     _genAIInstance = new GoogleGenerativeAI(apiKey);
   }
   return _genAIInstance;
@@ -146,18 +150,31 @@ const generatePersona = async (flavorDNA) => {
     `;
 
     const result = await model.generateContent(prompt);
-    if (result && result.response) {
-      const text = result.response.text();
-      console.log('[generatePersona] Raw AI response:', text);
-      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
-      const aiPersona = JSON.parse(jsonStr);
-      if (aiPersona && aiPersona.title) {
-        console.log('[generatePersona] Parsed Persona:', aiPersona.title);
-        return aiPersona;
-      }
+    if (!result || !result.response) {
+      console.error('[generatePersona Error] Empty response from Gemini API');
+      return null;
+    }
+
+    const text = result.response.text();
+    console.log('[generatePersona] Raw AI response:', text);
+    
+    // JSON 추출
+    const jsonStr = text.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonStr) {
+      console.error('[generatePersona Error] Could not find JSON block in AI response');
+      return null;
+    }
+
+    const aiPersona = JSON.parse(jsonStr);
+    if (aiPersona && aiPersona.title) {
+      console.log('[generatePersona] Parsed Persona SUCCESS:', aiPersona.title);
+      return aiPersona;
+    } else {
+      console.error('[generatePersona Error] Parsed JSON missing "title" field:', aiPersona);
     }
   } catch (error) {
-    console.error('[Helper: generatePersona Error]:', error.message, error.stack);
+    console.error('[generatePersona Exception]:', error.message);
+    if (error.stack) console.error(error.stack);
   }
   return null;
 };
