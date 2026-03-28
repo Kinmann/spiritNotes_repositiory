@@ -376,38 +376,36 @@ const NewNote = () => {
         <div className={styles.rightCol}>
 
           {/* Search Encyclopedia */}
-          {!isEdit && (
-            <div className={styles.searchWrapper}>
-              <span className="material-symbols-outlined">search</span>
-              <input 
-                className={styles.searchInput}
-                type="text"
-                placeholder="Search Encyclopedia..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                }}
-                onFocus={() => setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-              />
-              
-              {showSearchDropdown && searchResults.length > 0 && (
-                <div className={styles.searchDropdown}>
-                  {searchResults.map(spirit => (
-                    <div key={spirit.id} className={styles.searchResultItem} onMouseDown={() => handleSelectSpirit(spirit)}>
-                      <div className={styles.resultInfo}>
-                        <div className={styles.resultName}>{spirit.name}</div>
-                        <div className={styles.resultMeta}>
-                          {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
-                        </div>
+          <div className={styles.searchWrapper}>
+            <span className="material-symbols-outlined">search</span>
+            <input 
+              className={styles.searchInput}
+              type="text"
+              placeholder="Search Encyclopedia..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
+              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+            />
+            
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className={styles.searchDropdown}>
+                {searchResults.map(spirit => (
+                  <div key={spirit.id} className={styles.searchResultItem} onMouseDown={() => handleSelectSpirit(spirit)}>
+                    <div className={styles.resultInfo}>
+                      <div className={styles.resultName}>{spirit.name}</div>
+                      <div className={styles.resultMeta}>
+                        {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
                       </div>
-                      <span className="material-symbols-outlined">add_circle</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    <span className="material-symbols-outlined">add_circle</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Spirit Info Fields */}
           <div className={styles.infoFields}>
