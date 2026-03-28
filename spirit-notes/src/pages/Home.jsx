@@ -53,8 +53,12 @@ const Home = () => {
           ];
           setFlavorDnaData(mappedData);
         }
+        
+        if (data.persona) {
+          setPersona(data.persona);
         }
       }
+    }
 
       if (uid !== 'guest') {
         const data = await getUserNotes(uid);
@@ -72,15 +76,6 @@ const Home = () => {
 
       const recs = await getRecommendations(uid);
       setRecommendations(recs.recommendations || []);
-
-      try {
-        const personaRes = await api.post(`/persona/${uid}`);
-        if (personaRes.data.success) {
-          setPersona(personaRes.data.persona);
-        }
-      } catch (pErr) {
-        console.error('Error fetching persona:', pErr);
-      }
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -110,9 +105,9 @@ const Home = () => {
           <div className={styles.personaContent}>
             <p className={styles.personaLabel}>Your Taste Persona</p>
             <div className={styles.personaDescription}>
-              <h3>{persona?.title}</h3>
+              <h3>{persona?.title || 'Discovery in Progress'}</h3>
               <p>
-                {persona?.description}
+                {persona?.description || 'A deep biological mapping of your olfactory and palate preferences.'}
               </p>
             </div>
             <Link to="/dna" className={styles.personaLink}>

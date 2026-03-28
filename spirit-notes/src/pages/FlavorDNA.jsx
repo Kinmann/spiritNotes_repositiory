@@ -44,6 +44,7 @@ const FlavorDNA = () => {
       try {
         const data = await getPersona(uid);
         if (data && data.persona) {
+          console.log('[FlavorDNA Persona Received]:', data.persona);
           setPersona(data.persona);
         } else {
           setPersona({
