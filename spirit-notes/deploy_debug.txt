@@ -1,0 +1,344 @@
+﻿[2026-04-02T02:16:17.292Z] Field "/hosting" in "firebase.json" is possibly invalid: must be object
+[2026-04-02T02:16:17.292Z] Object "/hosting/0" in "firebase.json" is missing required property: {"missingProperty":"target"}
+[2026-04-02T02:16:17.292Z] Object "/hosting/0" in "firebase.json" is missing required property: {"missingProperty":"site"}
+[2026-04-02T02:16:17.292Z] Field "/hosting/0" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[2026-04-02T02:16:17.293Z] Field "/hosting" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[2026-04-02T02:16:17.296Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-04-02T02:16:17.296Z] > authorizing via signed-in user (a71090236@gmail.com)
+[2026-04-02T02:16:17.296Z] [iam] checking project antigravity-dd7c2 for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[2026-04-02T02:16:17.298Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:17.298Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:17.299Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions [none]
+[2026-04-02T02:16:17.299Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:17.299Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-04-02T02:16:17.527Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions 200
+[2026-04-02T02:16:17.527Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-04-02T02:16:17.527Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:17.528Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:17.528Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/antigravity-dd7c2/serviceAccounts/antigravity-dd7c2@appspot.gserviceaccount.com:testIamPermissions [none]
+[2026-04-02T02:16:17.528Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/antigravity-dd7c2/serviceAccounts/antigravity-dd7c2@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[2026-04-02T02:16:18.751Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/antigravity-dd7c2/serviceAccounts/antigravity-dd7c2@appspot.gserviceaccount.com:testIamPermissions 200
+[2026-04-02T02:16:18.751Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/antigravity-dd7c2/serviceAccounts/antigravity-dd7c2@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+
+=== Deploying to 'antigravity-dd7c2'...
+
+i  deploying functions 
+[2026-04-02T02:16:18.754Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.754Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.754Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 [none]
+[2026-04-02T02:16:18.943Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 200
+[2026-04-02T02:16:18.943Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 {"projectNumber":"149534308464","projectId":"antigravity-dd7c2","lifecycleState":"ACTIVE","name":"antigravity","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-03-18T07:43:27.478Z"}
+i  functions: preparing codebase default for deployment 
+i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[2026-04-02T02:16:18.944Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.944Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.944Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.944Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[2026-04-02T02:16:18.945Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.945Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[2026-04-02T02:16:18.945Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.945Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:18.945Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudfunctions.googleapis.com [none]
+[2026-04-02T02:16:18.945Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:18.947Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/runtimeconfig.googleapis.com [none]
+[2026-04-02T02:16:18.947Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:18.948Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudbuild.googleapis.com [none]
+[2026-04-02T02:16:18.948Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudbuild.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:18.949Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/artifactregistry.googleapis.com [none]
+[2026-04-02T02:16:18.949Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/artifactregistry.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:20.223Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudfunctions.googleapis.com 200
+[2026-04-02T02:16:20.223Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudfunctions.googleapis.com [omitted]
++  functions: required API cloudfunctions.googleapis.com is enabled 
+[2026-04-02T02:16:20.224Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/runtimeconfig.googleapis.com 200
+[2026-04-02T02:16:20.224Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/runtimeconfig.googleapis.com [omitted]
+[2026-04-02T02:16:20.225Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudbuild.googleapis.com 200
+[2026-04-02T02:16:20.226Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/cloudbuild.googleapis.com [omitted]
++  functions: required API cloudbuild.googleapis.com is enabled 
+[2026-04-02T02:16:20.227Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/artifactregistry.googleapis.com 200
+[2026-04-02T02:16:20.227Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/artifactregistry.googleapis.com [omitted]
++  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[2026-04-02T02:16:20.228Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:20.228Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:20.228Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/antigravity-dd7c2/adminSdkConfig [none]
+[2026-04-02T02:16:21.085Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/antigravity-dd7c2/adminSdkConfig 200
+[2026-04-02T02:16:21.085Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/antigravity-dd7c2/adminSdkConfig {"projectId":"antigravity-dd7c2","storageBucket":"antigravity-dd7c2.firebasestorage.app"}
+[2026-04-02T02:16:21.086Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:21.086Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:21.086Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/antigravity-dd7c2/configs [none]
+[2026-04-02T02:16:21.466Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/antigravity-dd7c2/configs 200
+[2026-04-02T02:16:21.466Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/antigravity-dd7c2/configs {}
+[2026-04-02T02:16:21.468Z] Validating nodejs source
+!  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+!  functions: Please note that there will be breaking changes when you upgrade. 
+[2026-04-02T02:16:22.391Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-functions": "^6.0.0",
+    "firebase-admin": "^13.0.0",
+    "express": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@google/generative-ai": "^0.24.1"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[2026-04-02T02:16:22.391Z] Building nodejs source
+i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[2026-04-02T02:16:22.392Z] Could not find functions.yaml. Must use http discovery
+[2026-04-02T02:16:22.402Z] Found firebase-functions binary at 'D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\functions\node_modules\.bin\firebase-functions'
+Serving at port 8169
+
+[2026-04-02T02:16:23.155Z] Got response from /__/functions.yaml {"endpoints":{"api":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","region":["asia-northeast3"],"secretEnvironmentVariables":[{"key":"GEMINI_API_KEY"}],"labels":{},"httpsTrigger":{"invoker":["public"]},"entryPoint":"api"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[2026-04-02T02:16:27.206Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:27.206Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:27.206Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/firebaseextensions.googleapis.com [none]
+[2026-04-02T02:16:27.207Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/firebaseextensions.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:28.544Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/firebaseextensions.googleapis.com 200
+[2026-04-02T02:16:28.544Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/firebaseextensions.googleapis.com [omitted]
++  extensions: required API firebaseextensions.googleapis.com is enabled 
+[2026-04-02T02:16:28.545Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-04-02T02:16:28.545Z] > authorizing via signed-in user (a71090236@gmail.com)
+[2026-04-02T02:16:28.545Z] [iam] checking project antigravity-dd7c2 for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[2026-04-02T02:16:28.545Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:28.545Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:28.545Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions [none]
+[2026-04-02T02:16:28.545Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:28.545Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[2026-04-02T02:16:28.748Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions 200
+[2026-04-02T02:16:28.748Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[2026-04-02T02:16:28.748Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:28.749Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:28.749Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/antigravity-dd7c2/instances pageSize=100&pageToken=
+[2026-04-02T02:16:29.911Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/antigravity-dd7c2/instances 200
+[2026-04-02T02:16:29.911Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/antigravity-dd7c2/instances {}
+i  functions: Loaded environment variables from .env. 
+i  functions: preparing functions directory for uploading... 
+i  functions: packaged D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\functions (79.24 KB) for uploading 
+[2026-04-02T02:16:29.948Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:29.948Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:29.948Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/antigravity-dd7c2/locations/-/functions [none]
+[2026-04-02T02:16:30.716Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/antigravity-dd7c2/locations/-/functions 200
+[2026-04-02T02:16:30.716Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/antigravity-dd7c2/locations/-/functions {}
+[2026-04-02T02:16:30.716Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:30.717Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:30.717Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/-/functions filter=environment%3D%22GEN_2%22
+[2026-04-02T02:16:32.149Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/-/functions 200
+[2026-04-02T02:16:32.150Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/-/functions {"functions":[{"name":"projects/antigravity-dd7c2/locations/asia-northeast3/functions/api","buildConfig":{"build":"projects/149534308464/locations/asia-northeast3/builds/857f784b-c904-4fae-b46a-44648d56f682","runtime":"nodejs22","entryPoint":"api","source":{"storageSource":{"bucket":"gcf-v2-sources-149534308464-asia-northeast3","object":"api/function-source.zip","generation":"1774712115185145"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/antigravity-dd7c2/locations/asia-northeast3/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-149534308464-asia-northeast3","object":"api/function-source.zip","generation":"1774712115185145"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/antigravity-dd7c2/serviceAccounts/149534308464-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/antigravity-dd7c2/locations/asia-northeast3/services/api","timeoutSeconds":60,"environmentVariables":{"GEMINI_API_KEY_LOCAL":"AIzaSyBXhvbf-Pl7T3ofWwOry1yPFx4eAyQX224","FIREBASE_CONFIG":"{\"projectId\":\"antigravity-dd7c2\",\"storageBucket\":\"antigravity-dd7c2.firebasestorage.app\"}","GCLOUD_PROJECT":"antigravity-dd7c2","EVENTARC_CLOUD_EVENT_SOURCE":"projects/antigravity-dd7c2/locations/asia-northeast3/services/api","FUNCTION_TARGET":"api","LOG_EXECUTION_ID":"true"},"maxInstanceCount":20,"ingressSettings":"ALLOW_ALL","uri":"https://api-jxvqvauuaa-du.a.run.app","serviceAccountEmail":"149534308464-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"secretEnvironmentVariables":[{"key":"GEMINI_API_KEY","projectId":"antigravity-dd7c2","secret":"GEMINI_API_KEY","version":"2"}],"revision":"api-00022-qos","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2026-03-28T15:36:03.843833236Z","labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"0002d772b28ccdb92235c8b53bed714976fd69d4"},"environment":"GEN_2","url":"https://asia-northeast3-antigravity-dd7c2.cloudfunctions.net/api","satisfiesPzs":true,"createTime":"2026-03-24T08:18:49.851404497Z","satisfiesPzi":true}]}
+i  functions: ensuring required API run.googleapis.com is enabled... 
+[2026-04-02T02:16:32.152Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:32.152Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  functions: ensuring required API eventarc.googleapis.com is enabled... 
+[2026-04-02T02:16:32.152Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:32.152Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  functions: ensuring required API pubsub.googleapis.com is enabled... 
+[2026-04-02T02:16:32.153Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:32.153Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  functions: ensuring required API storage.googleapis.com is enabled... 
+[2026-04-02T02:16:32.153Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:32.153Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:32.153Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/run.googleapis.com [none]
+[2026-04-02T02:16:32.153Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/run.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:32.153Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/eventarc.googleapis.com [none]
+[2026-04-02T02:16:32.154Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/eventarc.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:32.154Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/pubsub.googleapis.com [none]
+[2026-04-02T02:16:32.155Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/pubsub.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:32.156Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/storage.googleapis.com [none]
+[2026-04-02T02:16:32.156Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/storage.googleapis.com x-goog-quota-user=projects/antigravity-dd7c2
+[2026-04-02T02:16:33.361Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/run.googleapis.com 200
+[2026-04-02T02:16:33.362Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/run.googleapis.com [omitted]
++  functions: required API run.googleapis.com is enabled 
+[2026-04-02T02:16:33.555Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/eventarc.googleapis.com 200
+[2026-04-02T02:16:33.555Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/eventarc.googleapis.com [omitted]
++  functions: required API eventarc.googleapis.com is enabled 
+[2026-04-02T02:16:33.570Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/storage.googleapis.com 200
+[2026-04-02T02:16:33.570Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/storage.googleapis.com [omitted]
++  functions: required API storage.googleapis.com is enabled 
+[2026-04-02T02:16:33.575Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/pubsub.googleapis.com 200
+[2026-04-02T02:16:33.575Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/antigravity-dd7c2/services/pubsub.googleapis.com [omitted]
++  functions: required API pubsub.googleapis.com is enabled 
+i  functions: generating the service identity for pubsub.googleapis.com... 
+[2026-04-02T02:16:33.576Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:33.576Z] Checked if tokens are valid: true, expires at: 1775099181853
+i  functions: generating the service identity for eventarc.googleapis.com... 
+[2026-04-02T02:16:33.576Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:33.576Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:33.577Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/pubsub.googleapis.com:generateServiceIdentity [none]
+[2026-04-02T02:16:33.577Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/eventarc.googleapis.com:generateServiceIdentity [none]
+[2026-04-02T02:16:34.846Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/eventarc.googleapis.com:generateServiceIdentity 200
+[2026-04-02T02:16:34.847Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/eventarc.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-149534308464@gcp-sa-eventarc.iam.gserviceaccount.com","uniqueId":"111415444782970648700"}}
+[2026-04-02T02:16:34.965Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/pubsub.googleapis.com:generateServiceIdentity 200
+[2026-04-02T02:16:34.965Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/149534308464/services/pubsub.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-149534308464@gcp-sa-pubsub.iam.gserviceaccount.com","uniqueId":"104671267647439417349"}}
+[2026-04-02T02:16:34.966Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:34.966Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:34.967Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/antigravity-dd7c2/secrets/GEMINI_API_KEY/versions/latest [none]
+[2026-04-02T02:16:35.225Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/antigravity-dd7c2/secrets/GEMINI_API_KEY/versions/latest 200
+[2026-04-02T02:16:35.226Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/antigravity-dd7c2/secrets/GEMINI_API_KEY/versions/latest {"name":"projects/149534308464/secrets/GEMINI_API_KEY/versions/3","createTime":"2026-04-02T02:03:02.439913Z","state":"ENABLED","replicationStatus":{"automatic":{}},"etag":"\"164e7099b677e9\""}
+[2026-04-02T02:16:35.226Z] Resolved secret version of GEMINI_API_KEY to 3.
+[2026-04-02T02:16:35.227Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:35.227Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:35.227Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 [none]
+[2026-04-02T02:16:35.465Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 200
+[2026-04-02T02:16:35.465Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/antigravity-dd7c2 {"projectNumber":"149534308464","projectId":"antigravity-dd7c2","lifecycleState":"ACTIVE","name":"antigravity","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-03-18T07:43:27.478Z"}
+[2026-04-02T02:16:35.466Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:35.466Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:35.466Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/antigravity-dd7c2/billingInfo [none]
+[2026-04-02T02:16:37.011Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/antigravity-dd7c2/billingInfo 200
+[2026-04-02T02:16:37.011Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/antigravity-dd7c2/billingInfo {"name":"projects/antigravity-dd7c2/billingInfo","projectId":"antigravity-dd7c2","billingAccountName":"billingAccounts/01D58E-6250B3-3E43FD","billingEnabled":true}
+[2026-04-02T02:16:37.012Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:37.012Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:37.012Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions:generateUploadUrl [none]
+[2026-04-02T02:16:37.461Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions:generateUploadUrl 200
+[2026-04-02T02:16:37.462Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions:generateUploadUrl {"uploadUrl":"https://storage.googleapis.com/gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com/8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip?GoogleAccessId=service-149534308464@gcf-admin-robot.iam.gserviceaccount.com&Expires=1775098000&Signature=nW%2BN8AVYo1tidzIS%2Fv3Es9DnrzoYQ%2FRv1OqgSJHRa4JvzbfjLlFYU%2BZBOXrYn7SF%2FhpeD3V9HLQ2wW7iUpE%2BXjCtOxI6RxoT7LkkhwFkgEj53xSwkpVW2F%2FuGAM1YwBqDcR%2BpWiQKTZotpaf6Al0rIwM6DrJLSxtZsNb2Nq6MU9ushhVY23apa0bDyhPzCWqI2BiH62%2Bx%2BOjBpEDNazAQRLAuIR2%2Bn1FYbnbEAalCJGdvD5M5G6Mu9Qb6KJOut%2Bhse9kKj0JgH8vlQhpqgEfwG%2BVEZ31IblUEUZAobdkI%2FiM1jAGm2dPXD601fcRthwQHOYHp8bvfipMWipJJyh%2BGQ%3D%3D","storageSource":{"bucket":"gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com","object":"8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip"}}
+[2026-04-02T02:16:37.463Z] >>> [apiv2][query] PUT https://storage.googleapis.com/gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com/8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip GoogleAccessId=service-149534308464%40gcf-admin-robot.iam.gserviceaccount.com&Expires=1775098000&Signature=nW%2BN8AVYo1tidzIS%2Fv3Es9DnrzoYQ%2FRv1OqgSJHRa4JvzbfjLlFYU%2BZBOXrYn7SF%2FhpeD3V9HLQ2wW7iUpE%2BXjCtOxI6RxoT7LkkhwFkgEj53xSwkpVW2F%2FuGAM1YwBqDcR%2BpWiQKTZotpaf6Al0rIwM6DrJLSxtZsNb2Nq6MU9ushhVY23apa0bDyhPzCWqI2BiH62%2Bx%2BOjBpEDNazAQRLAuIR2%2Bn1FYbnbEAalCJGdvD5M5G6Mu9Qb6KJOut%2Bhse9kKj0JgH8vlQhpqgEfwG%2BVEZ31IblUEUZAobdkI%2FiM1jAGm2dPXD601fcRthwQHOYHp8bvfipMWipJJyh%2BGQ%3D%3D
+[2026-04-02T02:16:37.463Z] >>> [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com/8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip [stream]
+[2026-04-02T02:16:37.600Z] <<< [apiv2][status] PUT https://storage.googleapis.com/gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com/8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip 200
+[2026-04-02T02:16:37.600Z] <<< [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com/8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip [omitted]
++  functions: functions folder uploaded successfully 
+i  functions: updating Node.js 22 (2nd Gen) function api(asia-northeast3)... 
+[2026-04-02T02:16:37.604Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:37.604Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:37.604Z] >>> [apiv2][query] PATCH https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api updateMask=name%2CbuildConfig.runtime%2CbuildConfig.entryPoint%2CbuildConfig.source.storageSource.bucket%2CbuildConfig.source.storageSource.object%2CbuildConfig.environmentVariables%2CbuildConfig.sourceToken%2CserviceConfig.environmentVariables%2CserviceConfig.secretEnvironmentVariables%2CserviceConfig.ingressSettings%2CserviceConfig.timeoutSeconds%2CserviceConfig.serviceAccountEmail%2CserviceConfig.availableMemory%2CserviceConfig.minInstanceCount%2CserviceConfig.maxInstanceCount%2CserviceConfig.maxInstanceRequestConcurrency%2CserviceConfig.availableCpu%2CserviceConfig.vpcConnector%2CserviceConfig.vpcConnectorEgressSettings%2Clabels%2CbuildConfig.buildEnvironmentVariables
+[2026-04-02T02:16:37.605Z] >>> [apiv2][body] PATCH https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api {"name":"projects/antigravity-dd7c2/locations/asia-northeast3/functions/api","buildConfig":{"runtime":"nodejs22","entryPoint":"api","source":{"storageSource":{"bucket":"gcf-v2-uploads-149534308464.asia-northeast3.cloudfunctions.appspot.com","object":"8103c214-bfc0-4c61-bdf5-30bffd5343c3.zip"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""}},"serviceConfig":{"environmentVariables":{"GEMINI_API_KEY":"AIzaSyAiRCHzWPh-hKNwddefnWqBbjtfr7AyGE0","FIREBASE_CONFIG":"{\"projectId\":\"antigravity-dd7c2\",\"storageBucket\":\"antigravity-dd7c2.firebasestorage.app\"}","GCLOUD_PROJECT":"antigravity-dd7c2","EVENTARC_CLOUD_EVENT_SOURCE":"projects/antigravity-dd7c2/locations/asia-northeast3/services/api","FUNCTION_TARGET":"api","LOG_EXECUTION_ID":"true"},"secretEnvironmentVariables":[{"key":"GEMINI_API_KEY","secret":"GEMINI_API_KEY","projectId":"antigravity-dd7c2","version":"3"}],"ingressSettings":null,"timeoutSeconds":null,"serviceAccountEmail":null,"availableMemory":"256Mi","minInstanceCount":null,"maxInstanceCount":null,"maxInstanceRequestConcurrency":80,"availableCpu":"1","vpcConnector":null,"vpcConnectorEgressSettings":null},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"9cd04c3ba7232fa5f069191d1da8a9f92abb072d"}}
+[2026-04-02T02:16:38.280Z] <<< [apiv2][status] PATCH https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api 400
+[2026-04-02T02:16:38.280Z] <<< [apiv2][body] PATCH https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api {"error":{"code":400,"message":"Could not update Cloud Run service projects/antigravity-dd7c2/locations/asia-northeast3/services/api. spec.template.spec.containers[0].env: Secret environment variable overlaps non secret environment variable: GEMINI_API_KEY","status":"INVALID_ARGUMENT"}}
+!  functions: Request to https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api?updateMask=name%2CbuildConfig.runtime%2CbuildConfig.entryPoint%2CbuildConfig.source.storageSource.bucket%2CbuildConfig.source.storageSource.object%2CbuildConfig.environmentVariables%2CbuildConfig.sourceToken%2CserviceConfig.environmentVariables%2CserviceConfig.secretEnvironmentVariables%2CserviceConfig.ingressSettings%2CserviceConfig.timeoutSeconds%2CserviceConfig.serviceAccountEmail%2CserviceConfig.availableMemory%2CserviceConfig.minInstanceCount%2CserviceConfig.maxInstanceCount%2CserviceConfig.maxInstanceRequestConcurrency%2CserviceConfig.availableCpu%2CserviceConfig.vpcConnector%2CserviceConfig.vpcConnectorEgressSettings%2Clabels%2CbuildConfig.buildEnvironmentVariables had HTTP Error: 400, Could not update Cloud Run service projects/antigravity-dd7c2/locations/asia-northeast3/services/api. spec.template.spec.containers[0].env: Secret environment variable overlaps non secret environment variable: GEMINI_API_KEY 
+!  functions:  failed to update function projects/antigravity-dd7c2/locations/asia-northeast3/functions/api 
+Failed to update function projects/antigravity-dd7c2/locations/asia-northeast3/functions/api
+[2026-04-02T02:16:38.287Z] Total Function Deployment time: 678
+[2026-04-02T02:16:38.287Z] 1 Functions Deployed
+[2026-04-02T02:16:38.287Z] 1 Functions Errored
+[2026-04-02T02:16:38.287Z] 0 Function Deployments Aborted
+[2026-04-02T02:16:38.287Z] Average Function Deployment time: 678
+
+Functions deploy had errors with the following functions:
+	api(asia-northeast3)
+[2026-04-02T02:16:38.507Z] Not printing URL for HTTPS function. Typically this means it didn't match a filter or we failed deployment
+i  functions: cleaning up build files... 
+[2026-04-02T02:16:38.508Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.508Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.508Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.508Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.509Z] >>> [apiv2][query] DELETE https://artifactregistry.googleapis.com/v1/projects/antigravity-dd7c2/locations/asia-northeast3/repositories/gcf-artifacts/packages/antigravity--dd7c2__asia--northeast3__api [none]
+[2026-04-02T02:16:38.510Z] >>> [apiv2][query] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list [none]
+[2026-04-02T02:16:38.728Z] <<< [apiv2][status] DELETE https://artifactregistry.googleapis.com/v1/projects/antigravity-dd7c2/locations/asia-northeast3/repositories/gcf-artifacts/packages/antigravity--dd7c2__asia--northeast3__api 404
+[2026-04-02T02:16:38.728Z] <<< [apiv2][body] DELETE https://artifactregistry.googleapis.com/v1/projects/antigravity-dd7c2/locations/asia-northeast3/repositories/gcf-artifacts/packages/antigravity--dd7c2__asia--northeast3__api {"error":{"code":404,"message":"Package \"projects/antigravity-dd7c2/locations/asia-northeast3/repositories/gcf-artifacts/packages/antigravity--dd7c2__asia--northeast3__api\" was not found.","status":"NOT_FOUND"}}
+[2026-04-02T02:16:38.921Z] <<< [apiv2][status] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list 404
+[2026-04-02T02:16:38.921Z] <<< [apiv2][body] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}]}
+[2026-04-02T02:16:38.921Z] Failed docker command with error  Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found","status":404}
+[2026-04-02T02:16:38.923Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.924Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:38.924Z] >>> [apiv2][query] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list [none]
+[2026-04-02T02:16:39.105Z] <<< [apiv2][status] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list 404
+[2026-04-02T02:16:39.105Z] <<< [apiv2][body] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}]}
+[2026-04-02T02:16:39.105Z] Failed docker command with error  Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found","status":404}
+[2026-04-02T02:16:39.214Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:39.214Z] Checked if tokens are valid: true, expires at: 1775099181853
+[2026-04-02T02:16:39.215Z] >>> [apiv2][query] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list [none]
+[2026-04-02T02:16:39.392Z] <<< [apiv2][status] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list 404
+[2026-04-02T02:16:39.392Z] <<< [apiv2][body] GET https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list {"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}]}
+[2026-04-02T02:16:39.393Z] Failed docker command with error  Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found {"name":"FirebaseError","children":[],"context":{"body":{"errors":[{"code":"NAME_UNKNOWN","message":"Repository \"asia.gcr.io\" not found"}],"error":{"message":"Not Found"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://asia.gcr.io/v2/antigravity-dd7c2/gcf/asia-northeast3/tags/list had HTTP Error: 404, Not Found","status":404}
+!  functions: Unhandled error cleaning up build images. This could result in a small monthly bill if not corrected. You can attempt to delete these images by redeploying or you can delete them manually at https://console.cloud.google.com/gcr/images/antigravity-dd7c2/asia/gcf 
+[2026-04-02T02:16:39.393Z] Functions deploy failed.
+[2026-04-02T02:16:39.393Z] {
+  "endpoint": {
+    "id": "api",
+    "project": "antigravity-dd7c2",
+    "region": "asia-northeast3",
+    "entryPoint": "api",
+    "platform": "gcfv2",
+    "runtime": "nodejs22",
+    "httpsTrigger": {
+      "invoker": [
+        "public"
+      ]
+    },
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "secretEnvironmentVariables": [
+      {
+        "key": "GEMINI_API_KEY",
+        "secret": "GEMINI_API_KEY",
+        "projectId": "antigravity-dd7c2",
+        "version": "3"
+      }
+    ],
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "serviceAccount": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "GEMINI_API_KEY": "AIzaSyAiRCHzWPh-hKNwddefnWqBbjtfr7AyGE0",
+      "FIREBASE_CONFIG": "{\"projectId\":\"antigravity-dd7c2\",\"storageBucket\":\"antigravity-dd7c2.firebasestorage.app\"}",
+      "GCLOUD_PROJECT": "antigravity-dd7c2",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/antigravity-dd7c2/locations/asia-northeast3/services/api"
+    },
+    "codebase": "default",
+    "runServiceId": "api",
+    "cpu": 1,
+    "securityLevel": "SECURE_ALWAYS",
+    "targetedByOnly": false,
+    "hash": "9cd04c3ba7232fa5f069191d1da8a9f92abb072d"
+  },
+  "op": "update",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "context": {
+      "function": "projects/antigravity-dd7c2/locations/asia-northeast3/functions/api"
+    },
+    "exit": 1,
+    "message": "Failed to update function projects/antigravity-dd7c2/locations/asia-northeast3/functions/api",
+    "original": {
+      "name": "FirebaseError",
+      "children": [],
+      "context": {
+        "body": {
+          "error": {
+            "code": 400,
+            "message": "Could not update Cloud Run service projects/antigravity-dd7c2/locations/asia-northeast3/services/api. spec.template.spec.containers[0].env: Secret environment variable overlaps non secret environment variable: GEMINI_API_KEY",
+            "status": "INVALID_ARGUMENT"
+          }
+        },
+        "response": {
+          "statusCode": 400
+        }
+      },
+      "exit": 1,
+      "message": "Request to https://cloudfunctions.googleapis.com/v2/projects/antigravity-dd7c2/locations/asia-northeast3/functions/api?updateMask=name%2CbuildConfig.runtime%2CbuildConfig.entryPoint%2CbuildConfig.source.storageSource.bucket%2CbuildConfig.source.storageSource.object%2CbuildConfig.environmentVariables%2CbuildConfig.sourceToken%2CserviceConfig.environmentVariables%2CserviceConfig.secretEnvironmentVariables%2CserviceConfig.ingressSettings%2CserviceConfig.timeoutSeconds%2CserviceConfig.serviceAccountEmail%2CserviceConfig.availableMemory%2CserviceConfig.minInstanceCount%2CserviceConfig.maxInstanceCount%2CserviceConfig.maxInstanceRequestConcurrency%2CserviceConfig.availableCpu%2CserviceConfig.vpcConnector%2CserviceConfig.vpcConnectorEgressSettings%2Clabels%2CbuildConfig.buildEnvironmentVariables had HTTP Error: 400, Could not update Cloud Run service projects/antigravity-dd7c2/locations/asia-northeast3/services/api. spec.template.spec.containers[0].env: Secret environment variable overlaps non secret environment variable: GEMINI_API_KEY",
+      "status": 400
+    },
+    "status": 400,
+    "code": 400
+  }
+}
+[2026-04-02T02:16:39.470Z] Error: Failed to update function api in region asia-northeast3
+    at D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:399:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Fabricator.updateV2Function (D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:388:32)
+    at async Fabricator.updateEndpoint (D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:155:13)
+    at async handle (D:\?숈쁺??vibeCoding\spiritNotes_repositiory\spirit-notes\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:89:17)
+
+Error: There was an error deploying functions
