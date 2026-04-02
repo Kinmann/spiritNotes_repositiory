@@ -322,9 +322,9 @@ const generateRecommendations = async (userId, userDNA, existingNotes = null) =>
       const genAI = getGenAI();
       if (!genAI) throw new Error('GenAI not initialized');
       
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
-      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+      const candidatesText = top4.map(c => `- ID: ${c.id}, Name: ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
 
       const prompt = `
         ${dnaInfo}
