@@ -7,6 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateFlavorDNA } from '@/api/flavorDna';
 import { getNoteById } from '@/api/notes';
 import { getAllSpirits } from '@/api/spirits';
+import { convertToWebP } from '@/utils/imageProcess';
 import FlavorRadarChart from '@/components/common/FlavorRadarChart';
 import styles from './NewNote.module.scss';
 
@@ -186,23 +187,34 @@ const NewNote = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // 이미지를 WebP로 변환 및 리사이징 (최대 1000px, quality 0.8)
+        const webpBlob = await convertToWebP(file, 1000, 1000, 0.8);
+        setImageFile(webpBlob);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(webpBlob);
+      } catch (error) {
+        console.error("Image conversion failed:", error);
+        toast.error("이미지 처리 중 오류가 발생했습니다.");
+      }
     }
   };
 
   const uploadImage = async (uid) => {
     if (!imageFile) return null;
-    const fileName = `${Date.now()}_${imageFile.name}`;
+    // 모든 이미지는 WebP로 변환되어 업로드됩니다.
+    const fileName = `${Date.now()}.webp`;
     const storageRef = ref(storage, `users/${uid}/notes/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, imageFile);
+    const snapshot = await uploadBytes(storageRef, imageFile, {
+      contentType: 'image/webp'
+    });
     return await getDownloadURL(snapshot.ref);
   };
 
@@ -364,38 +376,36 @@ const NewNote = () => {
         <div className={styles.rightCol}>
 
           {/* Search Encyclopedia */}
-          {!isEdit && (
-            <div className={styles.searchWrapper}>
-              <span className="material-symbols-outlined">search</span>
-              <input 
-                className={styles.searchInput}
-                type="text"
-                placeholder="Search Encyclopedia..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                }}
-                onFocus={() => setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-              />
-              
-              {showSearchDropdown && searchResults.length > 0 && (
-                <div className={styles.searchDropdown}>
-                  {searchResults.map(spirit => (
-                    <div key={spirit.id} className={styles.searchResultItem} onMouseDown={() => handleSelectSpirit(spirit)}>
-                      <div className={styles.resultInfo}>
-                        <div className={styles.resultName}>{spirit.name}</div>
-                        <div className={styles.resultMeta}>
-                          {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
-                        </div>
+          <div className={styles.searchWrapper}>
+            <span className="material-symbols-outlined">search</span>
+            <input 
+              className={styles.searchInput}
+              type="text"
+              placeholder="Search Encyclopedia..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
+              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+            />
+            
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className={styles.searchDropdown}>
+                {searchResults.map(spirit => (
+                  <div key={spirit.id} className={styles.searchResultItem} onMouseDown={() => handleSelectSpirit(spirit)}>
+                    <div className={styles.resultInfo}>
+                      <div className={styles.resultName}>{spirit.name}</div>
+                      <div className={styles.resultMeta}>
+                        {spirit.distillery && `${spirit.distillery} · `}{spirit.abv}% · {spirit.volume}ml
                       </div>
-                      <span className="material-symbols-outlined">add_circle</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    <span className="material-symbols-outlined">add_circle</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Spirit Info Fields */}
           <div className={styles.infoFields}>

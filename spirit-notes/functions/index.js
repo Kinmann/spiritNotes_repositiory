@@ -4,6 +4,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const { FieldValue } = require('firebase-admin/firestore');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Global options for all functions
@@ -23,49 +24,161 @@ app.use(express.json());
 // Lazy initialization helper for genAI
 // Initialize Gemini AI lazily to ensure secrets are loaded
 let _genAIInstance = null;
-function getGenAI() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is not set in environment');
-  }
+const getGenAI = () => {
   if (!_genAIInstance) {
+    let apiKey;
+    let source = 'none';
+    try {
+      apiKey = process.env.GEMINI_API_KEY; // Managed by Secret Manager in Prod
+      if (apiKey) {
+        source = 'Secret Manager (or Env)';
+      } else {
+        apiKey = process.env.GEMINI_API_KEY_LOCAL; // Fallback for local emulator
+        if (apiKey) source = 'process.env.LOCAL';
+      }
+    } catch (e) {
+      apiKey = process.env.GEMINI_API_KEY_LOCAL;
+      source = 'Catch Fallback (LOCAL)';
+    }
+
+    if (!apiKey) {
+      console.error('[getGenAI Error] GEMINI_API_KEY is missing in both Secret and Local env.');
+      return null;
+    }
+
+    // 보안을 위해 키의 앞뒤 4글자만 노출하여 설정 여부 확인
+    const maskedKey = `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+    console.log(`[getGenAI] API Key loaded successfully. Source: ${source}, Key: ${maskedKey}`);
+    
     _genAIInstance = new GoogleGenerativeAI(apiKey);
   }
   return _genAIInstance;
-}
+};
 
 // --- Helper Functions ---
 
 const calculateFlavorDNA = (notes) => {
-  let dna = { peat: 0, floral: 0, fruity: 0, woody: 0, spicy: 0, sweet: 0 };
-  const validNotes = notes.filter(n => (n.totalRating || n.rating) > 0);
-  if (!validNotes || validNotes.length === 0) return dna;
-
+  const now = new Date();
+  const dna = { peat: 0, floral: 0, fruity: 0, woody: 0, spicy: 0, sweet: 0 };
   let totalWeight = 0;
-  const lambda = 0.05;
-  const now = Date.now();
 
-  validNotes.forEach(note => {
-    const noteTime = note.createdAt?.toMillis ? note.createdAt.toMillis() : (new Date(note.createdAt).getTime() || now);
-    const daysSince = Math.max(0, (now - noteTime) / (1000 * 60 * 60 * 24));
-    const timeWeight = Math.exp(-lambda * daysSince);
-    const ratingWeight = (note.totalRating || note.rating || 0) / 5.0;
-    const finalWeight = timeWeight * ratingWeight;
+  console.log(`[calculateFlavorDNA] Processing ${notes ? notes.length : 0} notes`);
 
-    totalWeight += finalWeight;
-    Object.keys(dna).forEach(key => {
-      const flavorScore = note.flavor_axes?.[key] || 0;
-      dna[key] += (flavorScore * finalWeight);
-    });
+  if (!notes || !Array.isArray(notes)) return dna;
+
+  notes.forEach((note, index) => {
+    // Robust date parsing (Firestore Timestamp, serialized Timestamp, Date object, or String)
+    let createdAt = new Date();
+    const rawDate = note.createdAt;
+    
+    if (rawDate) {
+      if (typeof rawDate.toDate === 'function') {
+        createdAt = rawDate.toDate();
+      } else if (rawDate._seconds) {
+        createdAt = new Date(rawDate._seconds * 1000);
+      } else if (rawDate.seconds) {
+        createdAt = new Date(rawDate.seconds * 1000);
+      } else {
+        createdAt = new Date(rawDate);
+      }
+    }
+
+    // Ensure we have a valid Date
+    if (isNaN(createdAt.getTime())) {
+      createdAt = new Date();
+    }
+    
+    // Calculate weight based on recency (last 30 days get full weight, older notes decay)
+    const daysOld = Math.max(0, (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Weight calculation: linear decay over 90 days. Minimum weight 0.1
+    const weight = Math.max(0.1, 1 - (daysOld / 90));
+    
+    // Rating weight: notes with better ratings have more influence (normalized 0-1, default 1 if no rating)
+    const ratingScore = note.totalRating || note.rating;
+    const ratingFactor = ratingScore ? (Number(ratingScore) / 5) : 1;
+    
+    const finalWeight = weight * ratingFactor;
+
+    if (!isNaN(finalWeight) && finalWeight > 0) {
+      totalWeight += finalWeight;
+      Object.keys(dna).forEach(key => {
+        const flavorScore = Number(note.flavor_axes?.[key]) || 0;
+        dna[key] += (flavorScore * finalWeight);
+      });
+    }
   });
 
-  if (totalWeight > 0) {
+  if (totalWeight > 0 && !isNaN(totalWeight)) {
     Object.keys(dna).forEach(key => {
       dna[key] = Math.round((dna[key] / totalWeight) * 10) / 10;
+      if (isNaN(dna[key])) dna[key] = 0;
     });
   }
+
+  console.log('[calculateFlavorDNA] Final Weighted Result:', dna);
   return dna;
 };
+
+const generatePersona = async (flavorDNA) => {
+  try {
+    const genAI = getGenAI();
+    if (!flavorDNA || !genAI) return null;
+
+    const modelName = "gemini-2.5-flash";
+    console.log(`[generatePersona] Calling Gemini with model: ${modelName}`);
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const prompt = `
+      Analyze this Persona's Whiskey Flavor DNA with extreme precision: ${JSON.stringify(flavorDNA)}.
+      The DNA consists of 6 axes: Peat, Floral, Fruity, Woody, Spicy, Sweet (Scale: 0.0 to 10.0+).
+      
+      Guidelines for Micro-Sensitivity:
+      1. Numerical Precision: Treat even a 0.1 difference between axes as a significant nuance.
+      2. Tiered Interpretation:
+         - 0.0 - 2.0: Minimal/Subtle (a ghostly hint)
+         - 2.1 - 4.0: Light/Moderate (noticeable but polite)
+         - 4.1 - 6.0: Sturdy/Dominant (the heart of the palate)
+         - 6.1 - 8.0: High/Intense (the defining character)
+         - 8.1 - 10.0+: Extreme/Absolute (an obsession)
+      3. Threshold Effects: Emphasize shifts when an axis crosses into a new tier.
+      4. Relational Dynamics: Compare axes (e.g. if Fruity 7.0 and Wood 8.0, explain how woody essence slightly overpowers fruit).
+      
+      Create a simple but whitty and highly specific "Taste Persona" in KOREAN.
+      - The "title" should be very short and punchy (under 10 chars).
+      - The "description" should be approximately 120 characters long (very concise).
+      Output valid JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }
+    `;
+
+    const result = await model.generateContent(prompt);
+    if (!result || !result.response) {
+      console.error('[generatePersona Error] Empty response from Gemini API');
+      return null;
+    }
+
+    const text = result.response.text();
+    console.log('[generatePersona] Raw AI response:', text);
+    
+    // JSON 추출
+    const jsonStr = text.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonStr) {
+      console.error('[generatePersona Error] Could not find JSON block in AI response');
+      return null;
+    }
+
+    const aiPersona = JSON.parse(jsonStr);
+    if (aiPersona && aiPersona.title) {
+      console.log('[generatePersona] Parsed Persona SUCCESS:', aiPersona.title);
+      return aiPersona;
+    } else {
+      console.error('[generatePersona Error] Parsed JSON missing "title" field:', aiPersona);
+    }
+  } catch (error) {
+    console.error('[generatePersona Exception]:', error.message);
+    if (error.stack) console.error(error.stack);
+  }
+  return null;
+};
+
 
 /**
  * Cosine Similarity calculation for flavor profile matching
@@ -102,17 +215,22 @@ const getEnrichmentMaps = async (db) => {
   const categoriesMap = {};
   const locationsMap = {};
   const distilleriesMap = {};
-  
+
   if (db) {
     try {
-      const catsSnapshot = await db.collection('categories').get();
+      // Parallel fetch of all metadata collections
+      const [catsSnapshot, locsSnapshot, distsSnapshot] = await Promise.all([
+        db.collection('categories').get(),
+        db.collection('locations').get(),
+        db.collection('distilleries').get()
+      ]);
+
       const catsDocData = {};
       catsSnapshot.forEach(doc => catsDocData[doc.id] = doc.data());
       catsSnapshot.forEach(doc => {
         categoriesMap[doc.id] = buildHierarchy(doc.id, catsDocData);
       });
 
-      const locsSnapshot = await db.collection('locations').get();
       const locsDocData = {};
       locsSnapshot.forEach(doc => locsDocData[doc.id] = doc.data());
       locsSnapshot.forEach(doc => {
@@ -122,7 +240,6 @@ const getEnrichmentMaps = async (db) => {
         };
       });
 
-      const distsSnapshot = await db.collection('distilleries').get();
       distsSnapshot.forEach(doc => {
         const data = doc.data();
         distilleriesMap[doc.id] = {
@@ -134,7 +251,7 @@ const getEnrichmentMaps = async (db) => {
       console.error('[ERROR] Failed to fetch enrichment maps:', err);
     }
   }
-  
+
   return { categoriesMap, locationsMap, distilleriesMap };
 };
 
@@ -153,6 +270,95 @@ const enrichSpirit = (s, categoriesMap, locationsMap, distilleriesMap) => {
     productionTitle: s.info?.title || '',
     productionDescription: s.info?.description || ''
   };
+};
+
+/**
+ * Generate recommendations based on user DNA and current spirits database
+ */
+const generateRecommendations = async (userId, userDNA, existingNotes = null) => {
+  try {
+    const tastedSpiritIds = new Set();
+    if (userId && userId !== 'guest') {
+      if (existingNotes && Array.isArray(existingNotes)) {
+        // Use provided notes to avoid re-fetching
+        existingNotes.forEach(note => {
+          if (note.spirit_id) tastedSpiritIds.add(note.spirit_id);
+        });
+      } else {
+        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+        notesSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
+        });
+      }
+    }
+
+    // Parallel fetch of metadata and all spirits
+    const [{ categoriesMap, locationsMap, distilleriesMap }, allSpiritsSnapshot] = await Promise.all([
+      getEnrichmentMaps(db),
+      db.collection('spirits').get()
+    ]);
+    const candidates = [];
+
+    allSpiritsSnapshot.forEach(doc => {
+      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
+
+      if (userDNA && spiritData.flavor_axes) {
+        if (!tastedSpiritIds.has(doc.id)) {
+          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
+          candidates.push({ ...spiritData, similarity });
+        }
+      } else {
+        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
+      }
+    });
+
+    candidates.sort((a, b) => b.similarity - a.similarity);
+    const top4 = candidates.slice(0, 4);
+
+    if (top4.length === 0) return [];
+
+    try {
+      const genAI = getGenAI();
+      if (!genAI) throw new Error('GenAI not initialized');
+      
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
+      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
+
+      const prompt = `
+        ${dnaInfo}
+        Candidates:
+        ${candidatesText}
+        Provide a unique recommendation reason for each in Korean (1-2 sentences). 
+        Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]
+      `;
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
+      const aiRecs = JSON.parse(jsonStr);
+
+      return top4.map(spirit => {
+        const aiRec = aiRecs.find(r => r.id === spirit.id);
+        return {
+          ...spirit,
+          reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
+          matchRate: Math.round(spirit.similarity * 100)
+        };
+      });
+    } catch (aiError) {
+      console.error("[generateRecommendations AI Error]:", aiError);
+      return top4.map(c => ({
+        ...c,
+        reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
+        matchRate: Math.round(c.similarity * 100)
+      }));
+    }
+  } catch (error) {
+    console.error('[generateRecommendations Error]:', error);
+    return [];
+  }
 };
 
 // --- API Routes ---
@@ -185,8 +391,8 @@ router.get('/admin/migrate-spirits', async (req, res) => {
       batch.update(ref, {
         distilleryId: data.distilleryId,
         info: data.info,
-        distillery: admin.firestore.FieldValue.delete(),
-        description: admin.firestore.FieldValue.delete()
+        distillery: FieldValue.delete(),
+        description: FieldValue.delete()
       });
     }
     await batch.commit();
@@ -202,8 +408,8 @@ router.get('/spirits', async (req, res) => {
   try {
     const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
     const allSpiritsSnapshot = await db.collection('spirits').get();
-    
-    const spirits = allSpiritsSnapshot.docs.map(doc => 
+
+    const spirits = allSpiritsSnapshot.docs.map(doc =>
       enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap)
     );
     res.json({ success: true, spirits });
@@ -219,7 +425,7 @@ router.get('/spirits/:id', async (req, res) => {
     const { id } = req.params;
     console.log(`Fetching spirit detail for ID: ${id}`);
     const spiritDoc = await db.collection('spirits').doc(id).get();
-    
+
     if (!spiritDoc.exists) {
       console.warn(`Spirit not found with ID: ${id}`);
       return res.status(404).json({ success: false, error: 'Spirit not found' });
@@ -240,12 +446,12 @@ router.get('/notes/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    
+
     // Query the user's notes subcollection
     const notesSnapshot = await db.collection('users').doc(userId).collection('notes')
       .orderBy('createdAt', 'desc')
       .get();
-    
+
     const notes = notesSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -268,9 +474,9 @@ router.get('/notes/:userId/:noteId', async (req, res) => {
   try {
     const { userId, noteId } = req.params;
     const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    
+
     const noteDoc = await db.collection('users').doc(userId).collection('notes').doc(noteId).get();
-    
+
     if (!noteDoc.exists) {
       return res.status(404).json({ success: false, error: 'Note not found' });
     }
@@ -291,93 +497,157 @@ router.get('/notes/:userId/:noteId', async (req, res) => {
 
 // Update Flavor DNA for a user
 router.post('/flavor-dna/:userId', async (req, res) => {
+  const { userId } = req.params;
+  console.log(`[Functions] >>> START POST /flavor-dna/${userId}`);
   try {
-    const { userId } = req.params;
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
+    // Parallel fetch: current user data and their notes
+    console.log(`[Functions] 1. Parallel fetch User Doc and Notes`);
+    const [userDoc, notesSnapshot] = await Promise.all([
+      db.collection('users').doc(userId).get(),
+      db.collection('users').doc(userId).collection('notes').get()
+    ]);
     
+    console.log(`[Functions] 2. Mapping notes data (Count: ${notesSnapshot.size})`);
     const notes = notesSnapshot.docs.map(doc => doc.data());
+    
+    console.log(`[Functions] 3. Calculating Flavor DNA`);
     const flavorDNA = calculateFlavorDNA(notes);
+    console.log(`[Functions] 4. DNA Calculated:`, JSON.stringify(flavorDNA));
 
-    await db.collection('users').doc(userId).set({ flavorDNA }, { merge: true });
-    res.json({ success: true, flavorDNA });
+    // Axis Change Detection
+    const userData = userDoc.exists ? userDoc.data() : {};
+    const oldDNA = userData.flavorDNA || null;
+    
+    const dnaChanged = !oldDNA || 
+      ['peat', 'floral', 'fruity', 'woody', 'spicy', 'sweet'].some(k => 
+        Math.abs((oldDNA[k] || 0) - (flavorDNA[k] || 0)) > 0.05
+      );
+
+    let persona = userData.persona || null;
+    let recommendations = [];
+
+    if (dnaChanged) {
+      console.log(`[Functions] DNA Changed significantly. Regenerating Persona and Recommendations...`);
+      // Parallel execution of Persona and Recommendations generation
+      const [newPersona, newRecs] = await Promise.all([
+        generatePersona(flavorDNA),
+        generateRecommendations(userId, flavorDNA, notes) // Pass existing notes
+      ]);
+      
+      persona = newPersona;
+      recommendations = newRecs;
+      console.log(`[Functions] Parallel AI tasks completed SUCCESS`);
+    } else {
+      console.log(`[Functions] DNA changes were minimal. Skipping expensive AI generation.`);
+    }
+
+    const updateData = {
+      flavorDNA,
+      lastUpdated: FieldValue.serverTimestamp()
+    };
+
+    if (persona) {
+      updateData.persona = persona;
+    }
+    
+    console.log(`[Functions] Update UI-critical fields first`);
+    await db.collection('users').doc(userId).set(updateData, { merge: true });
+
+    // 9. Update Recommendations Sub-collection in background (if changed)
+    if (dnaChanged && recommendations && recommendations.length > 0) {
+      console.log(`[Functions] Updating recommendations sub-collection for ${userId}`);
+      const recsColRef = db.collection('users').doc(userId).collection('recommendations');
+      
+      const oldRecsSnapshot = await recsColRef.get();
+      const batch = db.batch();
+      oldRecsSnapshot.forEach(doc => batch.delete(doc.ref));
+      
+      recommendations.forEach(rec => {
+        const docRef = recsColRef.doc(rec.id);
+        batch.set(docRef, {
+          ...rec,
+          createdAt: FieldValue.serverTimestamp()
+        });
+      });
+
+      batch.update(db.collection('users').doc(userId), {
+        recommendations: FieldValue.delete()
+      });
+
+      await batch.commit();
+      console.log(`[Functions] Recommendations sub-collection updated SUCCESS`);
+    }
+    
+    console.log(`[Functions] overall SUCCESS`);
+    res.json({ success: true, flavorDNA, persona, skipAi: !dnaChanged });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(`[Functions] !!! ERROR in POST /flavor-dna/${userId}:`, error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      step: "Check emulator logs"
+    });
   }
 });
 
-// Calculate recommendations based on Flavor DNA
+// GET /recommendations/:userId - Optimized logic reading from sub-collection
 router.get('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userDNA = userDoc.data()?.flavorDNA;
-
-    const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-    const tastedSpiritIds = new Set();
-    notesSnapshot.forEach(doc => tastedSpiritIds.add(doc.data().spirit_id));
-
-    const spiritsSnapshot = await db.collection('spirits').get();
-    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    const spirits = spiritsSnapshot.docs.map(doc => enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap));
-
-    // Simple similarity calculation (Euclidean distance) if DNA exists
-    const scoredSpirits = spirits.map(spirit => {
-      let similarity = 0;
-      if (userDNA && spirit.flavor_axes) {
-        let sumSquaredDiff = 0;
-        let count = 0;
-        Object.keys(userDNA).forEach(key => {
-          if (spirit.flavor_axes[key] !== undefined) {
-            sumSquaredDiff += Math.pow(userDNA[key] - spirit.flavor_axes[key], 2);
-            count++;
-          }
-        });
-        similarity = count > 0 ? 1 / (1 + Math.sqrt(sumSquaredDiff)) : 0;
-      } else {
-        // Fallback for new users: popularity or random
-        similarity = 0.5; 
-      }
-      return { ...spirit, similarity };
-    });
-
-    // Sort by similarity and take top 3
-    const top3 = scoredSpirits
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 3);
-
-    // Get AI-powered recommendation reasons if Gemini is configured
-    let recs = [];
-    try {
-      const model = getGenAI().getGenerativeModel({ model: "gemini-2.0-flash" });
-      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user";
-      const candidatesText = top3.map(c => `- ${c.name} (Category: ${c.category || 'Unknown'})`).join('\n');
-      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in 1-2 Japanese or Korean sentences (based on context, default to Korean). Output JSON: [{ "id": "...", "name": "...", "reason": "..." }]`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-      recs = JSON.parse(jsonStr);
-    } catch (aiError) {
-      console.error("AI Recommendation error:", aiError);
-      // Fallback if AI generation fails
-      recs = top3.map(c => ({
-        id: c.id,
-        name: c.name,
-        reason: `${c.category || ' whiskey'} 카테고리에서 추천하는 특별한 주류입니다.`
-      }));
+    if (!userId || userId === 'guest') {
+      const recs = await generateRecommendations('guest', null);
+      return res.json({ success: true, recommendations: recs });
     }
 
-    const finalRecs = top3.map((spirit, i) => {
-      const aiRec = Array.isArray(recs) ? recs.find(r => r.id === spirit.id) || recs[i] : {};
-      return { 
-        ...spirit, 
-        reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
-        matchRate: Math.round(spirit.similarity * 100) 
-      };
-    });
-    res.json({ success: true, recommendations: finalRecs });
+    // 1. Try to read from sub-collection first
+    const recsSnapshot = await db.collection('users').doc(userId).collection('recommendations')
+      .orderBy('createdAt', 'desc')
+      .limit(4)
+      .get();
+    
+    if (!recsSnapshot.empty) {
+      console.log(`[Functions] Returning recommendations from sub-collection for ${userId}`);
+      const recommendations = recsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return res.json({ success: true, recommendations });
+    }
+
+    // 2. Migration: Check if old field exists
+    const userDocRef = db.collection('users').doc(userId);
+    const userDoc = await userDocRef.get();
+    const userData = userDoc.data();
+    
+    if (userData && userData.recommendations && userData.recommendations.length > 0) {
+      console.log(`[Functions] Migrating recommendations from field to sub-collection for ${userId}`);
+      const batch = db.batch();
+      userData.recommendations.slice(0, 4).forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
+      });
+      batch.update(userDocRef, { recommendations: FieldValue.delete() });
+      await batch.commit();
+
+      return res.json({ success: true, recommendations: userData.recommendations.slice(0, 4) });
+    }
+
+    // 3. Fallback: Generate if missing
+    console.log(`[Functions] No recommendations found for ${userId}. Generating...`);
+    const userDNA = userData?.flavorDNA || null;
+    const recs = await generateRecommendations(userId, userDNA);
+    
+    if (recs && recs.length > 0) {
+      const batch = db.batch();
+      recs.forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
+      });
+      await batch.commit();
+    }
+
+    res.json({ success: true, recommendations: recs });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error in GET /recommendations/:userId:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -392,128 +662,90 @@ router.delete('/notes/:userId/:noteId', async (req, res) => {
   }
 });
 
-// POST /recommendations/:userId - Generate personalized recommendations
+// POST /recommendations/:userId - Fetch pre-generated recommendations (from sub-collection)
 router.post('/recommendations/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    let recs = [];
-
-    let userDNA = null;
-    let tastedSpiritIds = new Set();
-
-    if (userId && userId !== 'guest') {
-      const userDoc = await db.collection('users').doc(userId).get();
-      const userData = userDoc.data();
-      if (userData && userData.flavorDNA) {
-        userDNA = userData.flavorDNA;
-        // Query user's subcollection for tasted spirits
-        const notesSnapshot = await db.collection('users').doc(userId).collection('notes').get();
-        notesSnapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.spirit_id) tastedSpiritIds.add(data.spirit_id);
-        });
-      }
+    
+    if (!userId || userId === 'guest') {
+      const recs = await generateRecommendations('guest', null);
+      return res.json({ success: true, recommendations: recs });
     }
 
-    const { categoriesMap, locationsMap, distilleriesMap } = await getEnrichmentMaps(db);
-    const allSpiritsSnapshot = await db.collection('spirits').get();
-    const candidates = [];
+    // Try reading from sub-collection first
+    const recsSnapshot = await db.collection('users').doc(userId).collection('recommendations')
+      .orderBy('createdAt', 'desc')
+      .limit(4)
+      .get();
     
-    allSpiritsSnapshot.forEach(doc => {
-      const spiritData = enrichSpirit({ id: doc.id, ...doc.data() }, categoriesMap, locationsMap, distilleriesMap);
-      
-      if (userDNA && spiritData.flavor_axes) {
-        if (!tastedSpiritIds.has(doc.id)) {
-          const similarity = calculateCosineSimilarity(userDNA, spiritData.flavor_axes);
-          candidates.push({ ...spiritData, similarity });
-        }
-      } else {
-        // Random similarity for users without DNA
-        candidates.push({ ...spiritData, similarity: 0.5 + Math.random() * 0.4 });
-      }
-    });
-
-    candidates.sort((a, b) => b.similarity - a.similarity);
-    const top4 = candidates.slice(0, 4);
-    
-    if (top4.length === 0) {
-      return res.json({ success: true, recommendations: [] });
+    if (!recsSnapshot.empty) {
+      console.log(`[Functions] [POST] Returning cached recommendations from sub-collection for ${userId}`);
+      const recommendations = recsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return res.json({ success: true, recommendations });
     }
 
-    try {
-      // Use the lazy-loaded genAI
-      const model = getGenAI().getGenerativeModel({ model: "gemini-1.5-flash" });
-      const dnaInfo = userDNA ? `User DNA: ${JSON.stringify(userDNA)}` : "Guest user (no specific DNA)";
-      const candidatesText = top4.map(c => `- ${c.name} (Category: ${c.category}, Origin: ${c.origin})`).join('\n');
-      
-      const prompt = `${dnaInfo}\nCandidates:\n${candidatesText}\nProvide a unique recommendation reason for each in Korean (1-2 sentences). Return ONLY a JSON array: [{ "id": "spiritId", "reason": "..." }]`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const jsonStr = text.match(/\[[\s\S]*\]/)?.[0] || '[]';
-      const aiRecs = JSON.parse(jsonStr);
-
-      recs = top4.map(spirit => {
-        const aiRec = aiRecs.find(r => r.id === spirit.id);
-        return {
-          ...spirit,
-          reason: aiRec?.reason || `${spirit.category} 카테고리에서 추천하는 주류입니다.`,
-          matchRate: Math.round(spirit.similarity * 100)
-        };
+    // Fallback to GET logic handling migration/generation
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    
+    // 유효한 필드 데이터가 있으면 직접 마이그레이션 할 수도 있지만, 
+    // 일관성을 위해 GET 로직에서 이미 처리된 경로와 유사하게 생성 또는 조회 수행
+    const userDNA = userData?.flavorDNA || null;
+    const recs = await generateRecommendations(userId, userDNA);
+    
+    if (recs && recs.length > 0) {
+      const batch = db.batch();
+      const userDocRef = db.collection('users').doc(userId);
+      recs.forEach(rec => {
+        const docRef = userDocRef.collection('recommendations').doc(rec.id);
+        batch.set(docRef, { ...rec, createdAt: FieldValue.serverTimestamp() });
       });
-    } catch (aiError) {
-      console.error("AI Recommendation error:", aiError);
-      recs = top4.map(c => ({
-        ...c,
-        reason: `${c.category || '취향'} 카테고리에서 추천하는 주류입니다.`,
-        matchRate: Math.round(c.similarity * 100)
-      }));
+      // 혹시라도 필드 데이터가 있었다면 정리
+      batch.update(userDocRef, { recommendations: FieldValue.delete() });
+      await batch.commit();
     }
 
     res.json({ success: true, recommendations: recs });
   } catch (error) {
-    console.error('Error generating recommendations:', error);
+    console.error('Error in POST /recommendations/:userId:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// POST /persona/:userId - Generate a poetic taste persona using Gemini AI
-router.post('/persona/:userId', async (req, res) => {
+// GET /api/persona/:userId - Retrieve cached taste persona
+router.get('/persona/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data();
-    let persona = {
-      title: "섬세한 미식가",
-      description: "다양한 맛의 균형을 중요하게 생각하며, 특히 복합적인 풍미를 즐기는 취향입니다.",
-      characteristics: ["균형 잡힌 선호도", "새로운 도전에 개방적"],
-      recommendationFocus: ["복합미", "질감", "피니시"]
-    };
 
-    const genAI = getGenAI();
-    if (userData && userData.flavorDNA && genAI) {
-      try {
-        const { flavorDNA } = userData;
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const prompt = `Analyze this Whiskey Flavor DNA: ${JSON.stringify(flavorDNA)}. Create a poetic Taste Persona in Korean. Output JSON: { "title": "...", "description": "...", "characteristics": ["..."], "recommendationFocus": ["..."] }`;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || '{}';
-        const aiPersona = JSON.parse(jsonStr);
-        if (aiPersona && aiPersona.title) {
-          persona = aiPersona;
-        }
-      } catch (aiError) {
-        console.error("AI Persona error:", aiError);
-      }
+    if (!userDoc.exists) {
+      return res.json({ success: true, persona: null });
     }
-    
+
+    const userData = userDoc.data();
+    // 저장된 페르소나 데이터가 있으면 반환, 없으면 null 반환 (AI 호출하지 않음)
+    const persona = userData.persona || null;
+
+    res.json({ success: true, persona });
+  } catch (error) {
+    console.error('Error retrieving persona:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/persona/:userId - Legacy support for persona generation (now just redirects to GET logic or handles as needed)
+router.post('/persona/:userId', async (req, res) => {
+  // 동일한 로직 수행 (프론트엔드 호환성 유지)
+  try {
+    const { userId } = req.params;
+    const userDoc = await db.collection('users').doc(userId).get();
+    const persona = userDoc.exists ? (userDoc.data().persona || null) : null;
     res.json({ success: true, persona });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 // Support both production (with /api prefix from Hosting) and local (without /api prefix from Emulator)
 app.use('/api', router);

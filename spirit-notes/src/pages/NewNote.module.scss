@@ -613,9 +613,17 @@
   z-index: 100;
   padding: 24px;
   background: linear-gradient(to top, $background 0%, rgba($background, 0.9) 80%, transparent 100%);
+  display: flex;
+  justify-content: center;
+
+  @media (min-width: 768px) {
+    left: 256px;
+    width: calc(100% - 256px);
+  }
 
   .saveButton {
     width: 100%;
+    max-width: 1024px;
     height: 56px;
     background-color: $primary;
     border: none;

@@ -176,72 +176,73 @@ const SpiritDetail = () => {
               </button>
             </div>
 
+            {/* Flavor Profile Box - Moved from Bento Grid for PC Layout optimization */}
+            <div className={styles.flavorCard}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <h3>Flavor Profile</h3>
+                  <p className={styles.subTitle}>
+                    Exploring core elements of {spirit.name}
+                  </p>
+                </div>
+                <span className={`material-symbols-outlined ${styles.headerIcon}`}>insights</span>
+              </div>
+
+              <div className={styles.radarContainer}>
+                <div className={styles.radarWrapper}>
+                  <FlavorRadarChart 
+                    data={[
+                      { subject: 'Peaty', value: spirit.flavor_axes?.peat || 0 },
+                      { subject: 'Floral', value: spirit.flavor_axes?.floral || 0 },
+                      { subject: 'Fruity', value: spirit.flavor_axes?.fruity || 0 },
+                      { subject: 'Woody', value: spirit.flavor_axes?.woody || 0 },
+                      { subject: 'Spicy', value: spirit.flavor_axes?.spicy || 0 },
+                      { subject: 'Sweet', value: spirit.flavor_axes?.sweet || 0 },
+                    ]} 
+                    color="var(--primary)" 
+                    height={200} 
+                  />
+                </div>
+
+                <div className={styles.dataGrid}>
+                  {[
+                    { key: 'peat', label: 'Peaty' },
+                    { key: 'floral', label: 'Floral' },
+                    { key: 'fruity', label: 'Fruity' },
+                    { key: 'woody', label: 'Woody' },
+                    { key: 'spicy', label: 'Spicy' },
+                    { key: 'sweet', label: 'Sweet' },
+                  ].map(({ key, label }) => (
+                    <div key={key} className={styles.dataItem}>
+                      <span className={cn(styles.dot, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeDot : null)}></span>
+                      <div className={styles.dataTexts}>
+                        <span className={cn(styles.label, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeLabel : null)}>{label}</span>
+                        <span className={styles.value}>{Math.round(spirit.flavor_axes?.[key] || 0)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.matchFooter}>
+                <div className={styles.matchHeader}>
+                  <span className={styles.dominant}>Dominant: {dominantFlavor[0]}</span>
+                  <span className={styles.percentage}>{matchRate}% Match</span>
+                </div>
+                <div className={styles.progressTrack}>
+                  <div 
+                    className={styles.progressBar} 
+                    style={{ width: `${matchRate}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
         {/* Bento Grid */}
         <div className={styles.bentoGrid}>
-          {/* Flavor Profile Box */}
-          <div className={styles.flavorCard}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h3>Flavor Profile</h3>
-                <p className={styles.subTitle}>
-                  Exploring core elements of {spirit.name}
-                </p>
-              </div>
-              <span className={`material-symbols-outlined ${styles.headerIcon}`}>insights</span>
-            </div>
-
-            <div className={styles.radarContainer}>
-              <div className={styles.radarWrapper}>
-                <FlavorRadarChart 
-                  data={[
-                    { subject: 'Peaty', value: spirit.flavor_axes?.peat || 0 },
-                    { subject: 'Floral', value: spirit.flavor_axes?.floral || 0 },
-                    { subject: 'Fruity', value: spirit.flavor_axes?.fruity || 0 },
-                    { subject: 'Woody', value: spirit.flavor_axes?.woody || 0 },
-                    { subject: 'Spicy', value: spirit.flavor_axes?.spicy || 0 },
-                    { subject: 'Sweet', value: spirit.flavor_axes?.sweet || 0 },
-                  ]} 
-                  color="var(--primary)" 
-                  height={240} 
-                />
-              </div>
-
-              <div className={styles.dataGrid}>
-                {[
-                  { key: 'peat', label: 'Peaty' },
-                  { key: 'floral', label: 'Floral' },
-                  { key: 'fruity', label: 'Fruity' },
-                  { key: 'woody', label: 'Woody' },
-                  { key: 'spicy', label: 'Spicy' },
-                  { key: 'sweet', label: 'Sweet' },
-                ].map(({ key, label }) => (
-                  <div key={key} className={styles.dataItem}>
-                    <span className={cn(styles.dot, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeDot : null)}></span>
-                    <div className={styles.dataTexts}>
-                      <span className={cn(styles.label, (spirit.flavor_axes?.[key] || 0) > 6 ? styles.activeLabel : null)}>{label}</span>
-                      <span className={styles.value}>{Math.round(spirit.flavor_axes?.[key] || 0)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.matchFooter}>
-              <div className={styles.matchHeader}>
-                <span className={styles.dominant}>Dominant: {dominantFlavor[0]}</span>
-                <span className={styles.percentage}>{matchRate}% Match</span>
-              </div>
-              <div className={styles.progressTrack}>
-                <div 
-                  className={styles.progressBar} 
-                  style={{ width: `${matchRate}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
 
           {/* Details Bento Row (Full Width on Grid) */}
           <div className={styles.detailsBento}>
